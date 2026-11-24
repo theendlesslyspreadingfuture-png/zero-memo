@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ゼロ秒思考">
+<title>ゼロ秒思考</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  .rf { font-family: 'M PLUS Rounded 1c', sans-serif; }
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 5rem);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+<!-- 通知トースト -->
+<div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-1.5">
+  <span id="toast-msg"></span>
+</div>
+
+<!-- ヘッダー -->
+<header class="bg-indigo-600 text-white p-4 sticky top-0 z-20 shadow">
+  <div class="max-w-md mx-auto flex justify-between items-center">
+    <div class="flex items-center gap-1.5">
+      <span class="text-xl">⚡</span>
+      <h1 class="text-base font-bold tracking-tight">ゼロ秒思考</h1>
+    </div>
+    <div class="text-xs bg-indigo-700/80 px-2.5 py-1 rounded-full font-bold">
+      本日: <span id="tc" class="text-yellow-300">0</span> / 10枚
+    </div>
+  </div>
+</header>
+
+<main class="max-w-md mx-auto p-4 space-y-4">
+  <!-- 書くタブ -->
+  <section id="tw" class="ts space-y-3">
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-xs font-bold text-slate-500">⏱️ 1分ライティング</span>
+        <div id="td" class="text-lg font-mono font-bold text-indigo-600 bg-indigo-50 px-3 py-0.5 rounded-lg border border-indigo-100">01:00</div>
+      </div>
+      <div class="mb-3">
+        <input type="text" id="mt" placeholder="タイトル（タップで開始）" class="w-full p-2.5 text-base font-bold border-b-2 border-indigo-600 bg-slate-50 rounded-t-lg focus:outline-none focus:bg-indigo-50/30 transition" onfocus="st()">
+      </div>
+      <div class="space-y-2" id="bic"></div>
+      <div class="mt-4 flex gap-2">
+        <button onclick="sm()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] transition text-white font-bold py-2.5 rounded-xl text-sm shadow-sm flex items-center justify-center gap-1">
+          💾 保存する
+        </button>
+        <button onclick="rf()" class="bg-slate-100 hover:bg-slate-200 active:scale-[0.98] transition text-slate-600 font-bold py-2.5 px-4 rounded-xl text-sm">
+          クリア
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- フォルダ管理タブ -->
+  <section id="tf" class="ts hidden space-y-3">
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
+      <h2 class="text-sm font-bold text-slate-700 mb-2.5">📁 フォルダ追加</h2>
+      <div class="flex gap-2 mb-3">
+        <input type="text" id="nfn" placeholder="新規フォルダ名" class="flex-1 p-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:border-indigo-500">
+        <button onclick="af()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-3.5 py-2 rounded-lg text-sm font-bold transition">追加</button>
+      </div>
+      <div id="fl" class="space-y-1.5"></div>
+    </div>
+    <div id="fac" class="space-y-3"></div>
+  </section>
+
+  <!-- 全メモタブ -->
+  <section id="ta" class="ts hidden space-y-3">
+    <input type="text" id="sb" placeholder="🔍 メモや注釈を検索..." oninput="rma()" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-white shadow-sm focus:outline-none focus:border-indigo-500">
+    <div id="aml" class="space-y-3"></div>
+  </section>
+
+  <!-- 統計タブ -->
+  <section id="ts" class="ts hidden space-y-3">
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 text-center space-y-3">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">本日の達成度</h2>
+      <div class="text-4xl font-extrabold text-indigo-600 tracking-tight">
+        <span id="stc">0</span> <span class="text-xl text-slate-400 font-semibold">/ 10 枚</span>
+      </div>
+      <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+        <div id="spb" class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width:0%"></div>
+      </div>
+      <p class="text-[11px] text-slate-500 rf">毎日10枚、思いついたことをどんどん書き出しましょう！</p>
+    </div>
+  </section>
+</main>
+
+<!-- ボトムナビゲーション -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 z-20 nav-safe shadow-lg">
+  <div class="max-w-md mx-auto flex justify-around py-2">
+    <button onclick="sbt('tw')" id="nv-tw" class="nb flex flex-col items-center text-indigo-600 transition">
+      <span class="text-lg">✍️</span><span class="text-[10px] font-bold">書く</span>
+    </button>
+    <button onclick="sbt('tf')" id="nv-tf" class="nb flex flex-col items-center text-slate-400 transition">
+      <span class="text-lg">📁</span><span class="text-[10px] font-bold">フォルダ</span>
+    </button>
+    <button onclick="sbt('ta')" id="nv-ta" class="nb flex flex-col items-center text-slate-400 transition">
+      <span class="text-lg">📚</span><span class="text-[10px] font-bold">全メモ</span>
+    </button>
+    <button onclick="sbt('ts')" id="nv-ts" class="nb flex flex-col items-center text-slate-400 transition">
+      <span class="text-lg">📊</span><span class="text-[10px] font-bold">統計</span>
+    </button>
+  </div>
+</nav>
+
+<!-- 編集モーダル -->
+<div id="em" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-3 backdrop-blur-sm">
+  <div class="bg-white w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl p-4 space-y-3 shadow-2xl">
+    <div class="flex justify-between items-center border-b pb-2">
+      <h2 class="text-sm font-bold text-slate-700">メモを編集</h2>
+      <button onclick="cem()" class="text-xl font-bold text-slate-400 hover:text-slate-600 p-1">×</button>
+    </div>
+    <input type="hidden" id="emi">
+    <input type="text" id="et" class="w-full p-2 text-base font-bold border-b-2 border-indigo-600 bg-slate-50 rounded-t focus:outline-none">
+    <div id="ebc" class="space-y-3"></div>
+    <div class="flex gap-2 pt-2 border-t">
+      <button onclick="sem()" class="flex-1 bg-indigo-600 active:scale-95 text-white font-bold py-2.5 rounded-xl text-sm transition shadow-sm">保存</button>
+      <button onclick="dem()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-4 py-2.5 rounded-xl text-sm transition">削除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// PWA Dynamic Manifest & Icon Setup
+(function setupPWA() {
+  const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <rect width="512" height="512" rx="128" fill="#4f46e5"/>
+    <path d="M280 64L160 288h96l-32 160 160-224h-96z" fill="#facc15"/>
+  </svg>`;
+  const iconUrl = 'data:image/svg+xml;base64,' + btoa(iconSvg);
+
+  const linkIcon = document.createElement('link');
+  linkIcon.rel = 'icon';
+  linkIcon.type = 'image/svg+xml';
+  linkIcon.href = iconUrl;
+  document.head.appendChild(linkIcon);
+
+  const touchIcon = document.createElement('link');
+  touchIcon.rel = 'apple-touch-icon';
+  touchIcon.href = iconUrl;
+  document.head.appendChild(touchIcon);
+
+  const manifest = {
+    name: "ゼロ秒思考 1分メモ",
+    short_name: "ゼロ秒思考",
+    description: "1分間で思考を深めるゼロ秒思考トレーニングアプリ",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#f8fafc",
+    theme_color: "#4f46e5",
+    icons: [
+      {
+        src: iconUrl,
+        sizes: "512x512",
+        type: "image/svg+xml",
+        purpose: "any maskable"
+      }
+    ]
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const manifestUrl = URL.createObjectURL(manifestBlob);
+  const linkManifest = document.createElement('link');
+  linkManifest.rel = 'manifest';
+  linkManifest.href = manifestUrl;
+  document.head.appendChild(linkManifest);
+
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE_NAME = 'zero-sec-v1';
+      self.addEventListener('install', e => { self.skipWaiting(); });
+      self.addEventListener('activate', e => { clients.claim(); });
+      self.addEventListener('fetch', e => {
+        e.respondWith(
+          fetch(e.request).catch(() => caches.match(e.request))
+        );
+      });
+    `;
+    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl).catch(() => {});
+  }
+})();
+
+// App Logic
+let ms = JSON.parse(localStorage.getItem('zm') || '[]');
+let fs = JSON.parse(localStorage.getItem('zf') || '["未分類","仕事","プライベート","思考"]');
+let cf = "未分類", tm = null, tl = 60, tr = false;
+
+window.onload = () => {
+  ibi('bic', ['', '', '', '', '', '']);
+  uc();
+  rfld();
+  rma();
+  sbt('tw');
+};
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  document.getElementById('toast-msg').innerText = msg;
+  el.classList.remove('opacity-0', 'pointer-events-none');
+  setTimeout(() => el.classList.add('opacity-0', 'pointer-events-none'), 2200);
+}
+
+function ibi(cid, vals) {
+  let c = document.getElementById(cid);
+  c.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    let d = document.createElement('div');
+    d.className = 'flex items-center gap-2';
+    d.innerHTML = `
+      <span class="text-xs font-bold text-indigo-500 w-4 text-center">${i + 1}.</span>
+      <input type="text" value="${vals[i] || ''}" placeholder="箇条書き ${i + 1}"
+        class="bi-${cid} flex-1 p-2 text-sm font-bold border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:border-indigo-500 focus:bg-white transition"
+        onkeydown="hbk(event, ${i}, '${cid}')">
+    `;
+    c.appendChild(d);
+  }
+}
+
+function hbk(e, idx, cid) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    let ins = document.querySelectorAll(`.${cid}`);
+    if (idx < 5) {
+      ins[idx + 1].focus();
+      ins[idx + 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (cid === 'bic') {
+      sm();
+    }
+  }
+}
+
+function st() {
+  if (tr) return;
+  tr = true;
+  tl = 60;
+  utd();
+  clearInterval(tm);
+  tm = setInterval(() => {
+    tl--;
+    utd();
+    if (tl <= 0) {
+      clearInterval(tm);
+      tr = false;
+      sm(true);
+    }
+  }, 1000);
+}
+
+function utd() {
+  const el = document.getElementById('td');
+  el.innerText = `${String(Math.floor(tl / 60)).padStart(2, '0')}:${String(tl % 60).padStart(2, '0')}`;
+  if (tl <= 10) {
+    el.className = 'text-lg font-mono font-bold text-rose-600 bg-rose-50 px-3 py-0.5 rounded-lg border border-rose-200 animate-pulse';
+  } else {
+    el.className = 'text-lg font-mono font-bold text-indigo-600 bg-indigo-50 px-3 py-0.5 rounded-lg border border-indigo-100';
+  }
+}
+
+function rt() {
+  clearInterval(tm);
+  tr = false;
+  tl = 60;
+  utd();
+}
+
+function sm(it = false) {
+  let t = document.getElementById('mt').value.trim();
+  let bs = Array.from(document.querySelectorAll('.bi-bic')).map(i => ({ text: i.value.trim(), annotations: [] }));
+  if (!t && bs.every(b => !b.text)) {
+    if (!it) toast('⚠️ 何か記入してください');
+    return;
+  }
+  ms.unshift({
+    id: Date.now(),
+    title: t || '無題',
+    bullets: bs,
+    folder: '未分類',
+    createdAt: new Date().toISOString()
+  });
+  sds();
+  rf();
+  toast(it ? '⏰ 1分経過：自動保存しました' : '💾 保存しました');
+  sbt('ta');
+}
+
+function rf() {
+  document.getElementById('mt').value = '';
+  ibi('bic', ['', '', '', '', '', '']);
+  rt();
+}
+
+function sds() {
+  localStorage.setItem('zm', JSON.stringify(ms));
+  localStorage.setItem('zf', JSON.stringify(fs));
+  uc();
+  rma();
+  rfld();
+}
+
+function uc() {
+  let ts = new Date().toDateString();
+  let tc = ms.filter(m => new Date(m.createdAt).toDateString() === ts).length;
+  document.getElementById('tc').innerText = tc;
+  document.getElementById('stc').innerText = tc;
+  document.getElementById('spb').style.width = `${Math.min(Math.round((tc / 10) * 100), 100)}%`;
+}
+
+function sbt(n) {
+  document.querySelectorAll('.ts').forEach(e => e.classList.add('hidden'));
+  document.querySelectorAll('.nb').forEach(e => {
+    e.classList.remove('text-indigo-600', 'font-bold');
+    e.classList.add('text-slate-400');
+  });
+  document.getElementById(n).classList.remove('hidden');
+  let an = document.getElementById(`nv-${n}`);
+  an.classList.remove('text-slate-400');
+  an.classList.add('text-indigo-600', 'font-bold');
+}
+
+function rma() {
+  let q = document.getElementById('sb').value.toLowerCase();
+  let c = document.getElementById('aml');
+  c.innerHTML = '';
+  let fms = ms.filter(m => m.title.toLowerCase().includes(q) || m.bullets.some(b => b.text.toLowerCase().includes(q) || (b.annotations || []).some(a => a.toLowerCase().includes(q))));
+  if (fms.length === 0) {
+    c.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs">メモが見つかりません</div>`;
+    return;
+  }
+  fms.forEach(m => {
+    let d = document.createElement('div');
+    d.className = 'bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2';
+    let ds = new Date(m.createdAt).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    let fo = fs.map(f => `<option value="${f}" ${m.folder === f ? 'selected' : ''}>${f}</option>`).join('');
+    d.innerHTML = `
+      <div class="flex justify-between items-start gap-2">
+        <h3 class="text-sm font-bold text-indigo-950 border-b-2 border-indigo-500 pb-0.5 flex-1 cursor-pointer" onclick="oem(${m.id})">${eh(m.title)}</h3>
+        <span class="text-[10px] text-slate-400 whitespace-nowrap">${ds}</span>
+      </div>
+      <div class="text-[11px] text-slate-500 flex items-center gap-1.5">
+        <span>📁</span>
+        <select onchange="cfm(${m.id}, this.value)" class="p-1 border border-slate-200 rounded-md bg-slate-50 text-[11px]">${fo}</select>
+      </div>
+      <div class="space-y-1 text-xs pt-1">
+        ${m.bullets.map((b, i) => b.text ? `
+          <div class="font-bold text-slate-700 flex gap-1.5">
+            <span class="text-indigo-500">${i + 1}.</span>
+            <span class="flex-1">${eh(b.text)}</span>
+          </div>
+          ${b.annotations && b.annotations.length > 0 ? `
+            <div class="pl-4 space-y-1 my-1">
+              ${b.annotations.map(a => `<div class="text-[11px] rf text-slate-600 bg-slate-100/80 p-1.5 rounded-lg border border-slate-200/70">💬 ${eh(a)}</div>`).join('')}
+            </div>
+          ` : ''}
+        ` : '').join('')}
+      </div>
+      <div class="flex justify-end pt-1">
+        <button onclick="oem(${m.id})" class="text-[11px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold px-3 py-1 rounded-lg transition">✏️ 編集・注釈</button>
+      </div>
+    `;
+    c.appendChild(d);
+  });
+}
+
+function cfm(id, nf) {
+  let m = ms.find(x => x.id === id);
+  if (m) {
+    m.folder = nf;
+    sds();
+    toast(`「${nf}」へ移動しました`);
+  }
+}
+
+function rfld() {
+  let l = document.getElementById('fl');
+  l.innerHTML = '';
+  fs.forEach(f => {
+    let cnt = ms.filter(m => m.folder === f).length;
+    let div = document.createElement('div');
+    div.className = 'flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-200 text-xs';
+    div.innerHTML = `
+      <span class="font-bold cursor-pointer text-slate-700 hover:text-indigo-600 flex-1" onclick="sft('${f}')">📁 ${f} (${cnt}枚)</span>
+      ${f !== '未分類' ? `<button onclick="df('${f}')" class="text-rose-500 hover:text-rose-700 text-[11px] font-bold px-2 py-0.5">削除</button>` : ''}
+    `;
+    l.appendChild(div);
+  });
+  rfms();
+}
+
+function af() {
+  let fn = document.getElementById('nfn').value.trim();
+  if (fn && !fs.includes(fn)) {
+    fs.push(fn);
+    document.getElementById('nfn').value = '';
+    sds();
+    toast(`📁 フォルダ「${fn}」を追加`);
+  }
+}
+
+function df(fn) {
+  if (confirm(`フォルダ「${fn}」を削除しますか？\n（中のメモは「未分類」に移動します）`)) {
+    ms.forEach(m => {
+      if (m.folder === fn) m.folder = '未分類';
+    });
+    fs = fs.filter(f => f !== fn);
+    if (cf === fn) cf = '未分類';
+    sds();
+    toast(`フォルダを削除しました`);
+  }
+}
+
+function sft(fn) {
+  cf = fn;
+  rfms();
+}
+
+function rfms() {
+  let c = document.getElementById('fac');
+  let tms = ms.filter(m => m.folder === cf);
+  c.innerHTML = `
+    <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm flex justify-between items-center">
+      <h3 class="text-xs font-bold text-indigo-700">📁 ${cf} （${tms.length}枚）</h3>
+      <button onclick="epf('${cf}')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-sm transition">📥 PDF出力</button>
+    </div>
+    <div class="space-y-2" id="fml"></div>
+  `;
+  let lc = document.getElementById('fml');
+  if (tms.length === 0) {
+    lc.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs bg-white rounded-xl border border-slate-200">メモがありません</div>`;
+    return;
+  }
+  tms.forEach(m => {
+    let ds = new Date(m.createdAt).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    let div = document.createElement('div');
+    div.className = 'bg-white p-3 rounded-xl border border-slate-200 space-y-1 cursor-pointer hover:border-indigo-300 transition';
+    div.onclick = () => oem(m.id);
+    div.innerHTML = `
+      <div class="font-bold text-sm text-indigo-900 border-b border-indigo-200 pb-0.5">${eh(m.title)}</div>
+      <div class="text-[10px] text-slate-400">${ds}</div>
+    `;
+    lc.appendChild(div);
+  });
+}
+
+function epf(fn) {
+  let tms = ms.filter(m => m.folder === fn);
+  if (tms.length === 0) {
+    toast('書き出せるメモがありません');
+    return;
+  }
+  let pw = window.open('', '_blank');
+  let h = `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>ゼロ秒思考 - ${fn}</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; color: #1e293b; max-width: 800px; margin: 0 auto; }
+    h1 { border-bottom: 2px solid #4f46e5; padding-bottom: 6px; color: #4f46e5; font-size: 18px; }
+    .mc { border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 16px; page-break-inside: avoid; }
+    .mt { font-size: 16px; font-weight: bold; border-bottom: 2px solid #4f46e5; padding-bottom: 3px; margin-bottom: 6px; color: #312e81; }
+    .md { font-size: 11px; color: #64748b; margin-bottom: 10px; }
+    .bi { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: flex; gap: 6px; }
+    .ai { font-size: 11px; font-family: sans-serif; background: #f8fafc; padding: 4px 8px; border-radius: 4px; border: 1px solid #e2e8f0; margin: 3px 0 5px 18px; color: #475569; }
+    .pb { padding: 10px 20px; background: #4f46e5; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; display: block; margin: 20px auto; }
+    @media print { .pb { display: none; } }
+  </style></head><body><h1>📁 ゼロ秒思考メモ - ${fn}</h1>`;
+  tms.forEach(m => {
+    h += `<div class="mc"><div class="mt">${eh(m.title)}</div><div class="md">${new Date(m.createdAt).toLocaleString('ja-JP')}</div>`;
+    m.bullets.forEach((b, i) => {
+      if (b.text) {
+        h += `<div class="bi"><span style="color:#6366f1">${i + 1}.</span><span>${eh(b.text)}</span></div>`;
+        if (b.annotations) {
+          b.annotations.forEach(a => {
+            h += `<div class="ai">💬 ${eh(a)}</div>`;
+          });
+        }
+      }
+    });
+    h += `</div>`;
+  });
+  pw.document.write(h + `<button class="pb" onclick="window.print()">🖨️ PDF保存 / 印刷</button></body></html>`);
+  pw.document.close();
+}
+
+function oem(id) {
+  let m = ms.find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('emi').value = m.id;
+  document.getElementById('et').value = m.title;
+  let c = document.getElementById('ebc');
+  c.innerHTML = '';
+  m.bullets.forEach((b, i) => {
+    let div = document.createElement('div');
+    div.className = 'bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1.5';
+    let ah = '';
+    (b.annotations || []).forEach((a, ai) => {
+      ah += `<div class="flex items-center gap-1.5"><input type="text" value="${eh(a)}" class="ea-${i} flex-1 p-1 text-xs rounded border border-slate-200 bg-white" placeholder="注釈 ${ai + 1}"><button onclick="this.parentElement.remove()" class="text-xs text-rose-500 font-bold px-1.5">×</button></div>`;
+    });
+    div.innerHTML = `
+      <div class="flex items-center gap-1.5">
+        <span class="text-xs font-bold text-indigo-600">${i + 1}.</span>
+        <input type="text" value="${eh(b.text)}" class="eb-${i} flex-1 p-1.5 text-sm font-bold border border-slate-200 rounded-lg bg-white">
+      </div>
+      <div class="pl-5 space-y-1">
+        <div class="text-[10px] font-bold text-slate-500">💬 注釈 (最大6つ):</div>
+        <div id="al-${i}" class="space-y-1">${ah}</div>
+        ${(b.annotations || []).length < 6 ? `<button onclick="aai(${i})" class="text-[10px] text-indigo-600 font-bold hover:underline">+ 注釈追加</button>` : ''}
+      </div>
+    `;
+    c.appendChild(div);
+  });
+  document.getElementById('em').classList.remove('hidden');
+}
+
+function aai(bi) {
+  let l = document.getElementById(`al-${bi}`);
+  if (l.children.length >= 6) return;
+  let div = document.createElement('div');
+  div.className = 'flex items-center gap-1.5';
+  div.innerHTML = `<input type="text" value="" class="ea-${bi} flex-1 p-1 text-xs rounded border border-slate-200 bg-white" placeholder="新しい注釈"><button onclick="this.parentElement.remove()" class="text-xs text-rose-500 font-bold px-1.5">×</button>`;
+  l.appendChild(div);
+}
+
+function cem() {
+  document.getElementById('em').classList.add('hidden');
+}
+
+function sem() {
+  let id = Number(document.getElementById('emi').value);
+  let m = ms.find(x => x.id === id);
+  if (!m) return;
+  m.title = document.getElementById('et').value.trim() || '無題';
+  for (let i = 0; i < 6; i++) {
+    let bt = document.querySelector(`.eb-${i}`).value.trim();
+    let ats = Array.from(document.querySelectorAll(`.ea-${i}`)).map(a => a.value.trim()).filter(Boolean);
+    m.bullets[i] = { text: bt, annotations: ats };
+  }
+  sds();
+  cem();
+  toast('メモを更新しました');
+}
+
+function dem() {
+  let id = Number(document.getElementById('emi').value);
+  if (confirm('このメモを削除しますか？')) {
+    ms = ms.filter(x => x.id !== id);
+    sds();
+    cem();
+    toast('削除しました');
+  }
+}
+
+function eh(s) {
+  return (s || '').replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t));
+}
+</script>
+</body>
+</html>
