@@ -80,7 +80,13 @@
 <!-- ヘッダー -->
 <header class="bg-[#060a12]/85 backdrop-blur-md border-b border-sky-500/15 px-4 py-3.5 sticky top-0 z-20">
   <div class="max-w-md mx-auto flex justify-between items-center">
-    <h1 class="text-sm font-bold tracking-wider text-white">0 SECOND THINKING</h1>
+    <div class="flex items-center gap-2">
+      <h1 class="text-sm font-bold tracking-wider text-white">0 SECOND THINKING</h1>
+      <button type="button" id="sync-badge" onclick="manualSync()" title="タップして手動同期" class="hidden items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-[10px] font-mono-num text-slate-400 hover:border-sky-400/50 transition">
+        <span id="sync-dot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+        <span id="sync-label">SYNC</span>
+      </button>
+    </div>
     <div class="text-xs font-mono-num tracking-wide text-slate-400">
       TODAY <span id="tc" class="text-sky-400 font-bold ml-1">0</span> <span class="text-slate-500">/ 10</span>
     </div>
@@ -151,7 +157,7 @@
     <div id="aml" class="space-y-3"></div>
   </section>
 
-  <!-- 4. 統計・データ管理タブ -->
+  <!-- 4. 統計・同期・データ管理タブ -->
   <section id="ts" class="ts hidden space-y-4">
     <!-- 本日の達成度＆累計枚数カード -->
     <div class="glass-card p-6 rounded-3xl text-center space-y-4">
@@ -171,7 +177,7 @@
       </div>
 
       <!-- 今までの総枚数（累計） -->
-      <div class="pt-3 border-t border-slate-800/90 flex items-center justify-between px-3 py-2.5 rounded-2xl bg-slate-900/60 border border-sky-400/15">
+      <div class="pt-3 border-t border-slate-800/90 flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-900/60 border border-sky-400/15">
         <span class="text-xs font-bold tracking-wider text-slate-300">今までの総枚数</span>
         <div class="font-mono-num font-bold text-sky-400">
           <span id="total-mc" class="text-2xl">0</span>
@@ -184,16 +190,36 @@
       </p>
     </div>
 
+    <!-- GitHub Gist 自動同期設定カード -->
+    <div class="glass-card p-5 rounded-3xl space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-bold tracking-wider text-sky-300/80">GitHub クラウド自動同期</h3>
+        <span id="sync-status-text" class="text-[10px] font-mono-num text-slate-400">未設定</span>
+      </div>
+      <p class="text-[11px] text-slate-400 leading-relaxed">
+        GitHubの「gist」権限トークンを各端末に一度だけ登録すると、メモとフォルダが非公開Gist経由で自動同期されます。
+      </p>
+      <div class="space-y-2">
+        <input type="password" id="gh-token-input" autocomplete="off" placeholder="ghp_...（GitHubトークンを貼り付け）" class="input-dark w-full px-3.5 py-2.5 rounded-xl text-xs font-mono-num placeholder-slate-500">
+        <div class="flex gap-2">
+          <button type="button" onclick="saveSyncSettings()" class="btn-glow-white flex-1 py-2.5 rounded-xl text-xs font-bold transition">
+            保存して同期
+          </button>
+          <button type="button" id="sync-disconnect-btn" onclick="disconnectSync()" class="hidden bg-rose-950/70 border border-rose-800/60 hover:bg-rose-900/70 text-rose-300 font-bold px-3.5 py-2.5 rounded-xl text-xs transition">
+            解除
+          </button>
+        </div>
+      </div>
+      <div id="sync-last-time" class="text-[10px] font-mono-num text-slate-500 text-right hidden"></div>
+    </div>
+
     <!-- データの書き出し・復元カード -->
     <div class="glass-card p-5 rounded-3xl space-y-3">
       <div class="flex items-center justify-between">
-        <h3 class="text-xs font-bold tracking-wider text-sky-300/80">データ管理（バックアップ・復元）</h3>
-        <span class="text-[10px] font-mono-num text-slate-400">JSON</span>
+        <h3 class="text-xs font-bold tracking-wider text-sky-300/80">ローカルバックアップ（JSON）</h3>
+        <span class="text-[10px] font-mono-num text-slate-400">FILE</span>
       </div>
-      <p class="text-[11px] text-slate-400 leading-relaxed">
-        メモとフォルダのデータをファイルとして端末に保存（書き出し）したり、別の端末やブラウザへ復元できます。
-      </p>
-      <div class="grid grid-cols-2 gap-2.5 pt-1">
+      <div class="grid grid-cols-2 gap-2.5">
         <button type="button" onclick="exportData()" class="bg-slate-800/90 hover:bg-slate-800 border border-sky-400/30 active:scale-[0.98] text-sky-300 font-bold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
           <span>📤</span> 書き出し
         </button>
@@ -275,10 +301,11 @@
 
   if ('serviceWorker' in navigator) {
     const swCode = `
-      const CACHE_NAME = 'zero-sec-v4';
+      const CACHE_NAME = 'zero-sec-v5';
       self.addEventListener('install', e => { self.skipWaiting(); });
       self.addEventListener('activate', e => { clients.claim(); });
       self.addEventListener('fetch', e => {
+        if (e.request.url.includes('api.github.com')) return;
         e.respondWith(
           fetch(e.request).catch(() => caches.match(e.request))
         );
@@ -290,18 +317,43 @@
   }
 })();
 
-// App State
+// App State (Local First)
+const DEFAULT_FOLDERS = ["未分類", "仕事", "プライベート", "思考"];
+const GIST_FILENAME = "zero-second-thinking-sync.json";
+
 let ms = JSON.parse(localStorage.getItem('zm') || '[]');
-let fs = JSON.parse(localStorage.getItem('zf') || '["未分類","仕事","プライベート","思考"]');
+let fs = JSON.parse(localStorage.getItem('zf') || JSON.stringify(DEFAULT_FOLDERS));
+let deletedMemoIds = JSON.parse(localStorage.getItem('zm_del') || '[]');
+let deletedFolders = JSON.parse(localStorage.getItem('zf_del') || '[]');
+
+let ghToken = localStorage.getItem('gh_sync_token') || '';
+let ghGistId = localStorage.getItem('gh_sync_gist_id') || '';
+let isSyncing = false;
+let pushTimer = null;
+
 let cf = "未分類", tm = null, tl = 60, tr = false;
 
 window.onload = () => {
+  // 1. ローカルデータを即座に描画（起動遅延ゼロ）
   ibi('bic', ['', '', '', '', '', '']);
   uc();
   rfld();
   rma();
   sbt('tw');
+  updateSyncUI();
+
+  // 2. トークン設定済みならバックグラウンドで自動同期
+  if (ghToken) {
+    syncWithGist(false);
+  }
 };
+
+// アプリがバックグラウンドから復帰したときも自動同期
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && ghToken && !isSyncing) {
+    syncWithGist(false);
+  }
+});
 
 function toast(msg) {
   const el = document.getElementById('toast');
@@ -310,7 +362,283 @@ function toast(msg) {
   setTimeout(() => el.classList.add('opacity-0', 'pointer-events-none'), 2400);
 }
 
-// タイトル欄でエンター（日本語変換確定を除く）を押したときに1行目へ移動
+// ==========================================
+// GitHub Secret Gist 自動同期エンジン
+// ==========================================
+function setSyncIndicator(state, detail = '') {
+  const badge = document.getElementById('sync-badge');
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  const statusText = document.getElementById('sync-status-text');
+
+  if (!ghToken) {
+    badge.classList.add('hidden');
+    badge.classList.remove('flex');
+    if (statusText) {
+      statusText.innerText = '未設定';
+      statusText.className = 'text-[10px] font-mono-num text-slate-400';
+    }
+    return;
+  }
+
+  badge.classList.remove('hidden');
+  badge.classList.add('flex');
+
+  if (state === 'syncing') {
+    dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping';
+    label.innerText = 'SYNCING';
+    if (statusText) {
+      statusText.innerText = '同期中...';
+      statusText.className = 'text-[10px] font-mono-num text-amber-400';
+    }
+  } else if (state === 'ok') {
+    dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+    label.innerText = 'SYNCED';
+    if (statusText) {
+      statusText.innerText = '連携済み ✓';
+      statusText.className = 'text-[10px] font-mono-num text-emerald-400';
+    }
+    const lastEl = document.getElementById('sync-last-time');
+    if (lastEl) {
+      const now = new Date();
+      lastEl.innerText = `最終同期: ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+      lastEl.classList.remove('hidden');
+    }
+  } else if (state === 'error') {
+    dot.className = 'w-1.5 h-1.5 rounded-full bg-rose-500';
+    label.innerText = 'ERR';
+    if (statusText) {
+      statusText.innerText = detail || '同期エラー';
+      statusText.className = 'text-[10px] font-mono-num text-rose-400';
+    }
+  }
+}
+
+function updateSyncUI() {
+  const input = document.getElementById('gh-token-input');
+  const discBtn = document.getElementById('sync-disconnect-btn');
+  if (ghToken) {
+    input.value = ghToken;
+    discBtn.classList.remove('hidden');
+    setSyncIndicator('ok');
+  } else {
+    input.value = '';
+    discBtn.classList.add('hidden');
+    setSyncIndicator('none');
+  }
+}
+
+function saveSyncSettings() {
+  const val = document.getElementById('gh-token-input').value.trim();
+  if (!val) {
+    toast('トークンを入力してください');
+    return;
+  }
+  ghToken = val;
+  ghGistId = ''; // 新しいトークンで再検出させる
+  localStorage.setItem('gh_sync_token', ghToken);
+  localStorage.removeItem('gh_sync_gist_id');
+  updateSyncUI();
+  syncWithGist(true);
+}
+
+function disconnectSync() {
+  if (!confirm('GitHub自動同期を解除しますか？\n（スマホ内のメモデータはそのまま残ります）')) return;
+  ghToken = '';
+  ghGistId = '';
+  localStorage.removeItem('gh_sync_token');
+  localStorage.removeItem('gh_sync_gist_id');
+  document.getElementById('sync-last-time').classList.add('hidden');
+  updateSyncUI();
+  toast('自動同期を解除しました');
+}
+
+function manualSync() {
+  if (!ghToken || isSyncing) return;
+  syncWithGist(true);
+}
+
+function schedulePushToGist() {
+  if (!ghToken) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => {
+    syncWithGist(false);
+  }, 800);
+}
+
+async function ghFetch(url, options = {}) {
+  const headers = {
+    'Authorization': `token ${ghToken}`,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  };
+  return fetch(url, { ...options, headers, cache: 'no-store' });
+}
+
+async function findOrCreateGist() {
+  // 1. すでにGist IDを保持している場合は確認
+  if (ghGistId) {
+    const res = await ghFetch(`https://api.github.com/gists/${ghGistId}`);
+    if (res.ok) return await res.json();
+    if (res.status === 404) {
+      ghGistId = '';
+      localStorage.removeItem('gh_sync_gist_id');
+    } else {
+      throw new Error(`HTTP ${res.status}`);
+    }
+  }
+
+  // 2. ユーザーのGist一覧から既存の同期用Gistを探す（2台目端末での自動検出）
+  const listRes = await ghFetch('https://api.github.com/gists?per_page=100');
+  if (!listRes.ok) {
+    if (listRes.status === 401) throw new Error('トークン無効');
+    throw new Error(`HTTP ${listRes.status}`);
+  }
+  const gists = await listRes.json();
+  const found = gists.find(g => g.files && g.files[GIST_FILENAME]);
+  if (found) {
+    ghGistId = found.id;
+    localStorage.setItem('gh_sync_gist_id', ghGistId);
+    const detailRes = await ghFetch(`https://api.github.com/gists/${ghGistId}`);
+    if (detailRes.ok) return await detailRes.json();
+  }
+
+  // 3. 見つからなければ非公開（Secret）Gistを新規作成
+  const initialPayload = {
+    version: 2,
+    updatedAt: new Date().toISOString(),
+    memos: ms,
+    folders: fs,
+    deletedMemoIds,
+    deletedFolders
+  };
+  const createRes = await ghFetch('https://api.github.com/gists', {
+    method: 'POST',
+    body: JSON.stringify({
+      description: '0 Second Thinking App Sync Data (Private)',
+      public: false,
+      files: {
+        [GIST_FILENAME]: {
+          content: JSON.stringify(initialPayload)
+        }
+      }
+    })
+  });
+  if (!createRes.ok) throw new Error(`作成失敗 (${createRes.status})`);
+  const created = await createRes.json();
+  ghGistId = created.id;
+  localStorage.setItem('gh_sync_gist_id', ghGistId);
+  return created;
+}
+
+async function syncWithGist(showToast = false) {
+  if (!ghToken || isSyncing) return;
+  isSyncing = true;
+  setSyncIndicator('syncing');
+
+  try {
+    const gist = await findOrCreateGist();
+    const fileObj = gist.files && gist.files[GIST_FILENAME];
+    let remote = null;
+
+    if (fileObj) {
+      if (fileObj.truncated && fileObj.raw_url) {
+        const rawRes = await fetch(fileObj.raw_url, { cache: 'no-store' });
+        remote = await rawRes.json();
+      } else if (fileObj.content) {
+        remote = JSON.parse(fileObj.content);
+      }
+    }
+
+    if (remote && Array.isArray(remote.memos)) {
+      // 削除済みIDの統合（直近500件まで保持）
+      const delMemoSet = new Set([...deletedMemoIds, ...(remote.deletedMemoIds || [])]);
+      deletedMemoIds = Array.from(delMemoSet).slice(-500);
+
+      const delFolderSet = new Set([...deletedFolders, ...(remote.deletedFolders || [])]);
+      deletedFolders = Array.from(delFolderSet).filter(f => f !== '未分類').slice(-100);
+
+      // フォルダの統合（削除済みフォルダは除外し、ローカル・リモート両方のフォルダを保持）
+      const mergedFolders = ['未分類'];
+      [...fs, ...(remote.folders || [])].forEach(f => {
+        if (typeof f === 'string' && f && !delFolderSet.has(f) && !mergedFolders.includes(f)) {
+          mergedFolders.push(f);
+        }
+      });
+      fs = mergedFolders;
+      if (!fs.includes(cf)) cf = '未分類';
+
+      // メモの統合（同じIDなら更新日時が新しい方を優先）
+      const memoMap = new Map();
+      remote.memos.forEach(m => {
+        if (m && m.id && !delMemoSet.has(m.id)) {
+          memoMap.set(m.id, m);
+        }
+      });
+      ms.forEach(localM => {
+        if (!localM || !localM.id || delMemoSet.has(localM.id)) return;
+        const remoteM = memoMap.get(localM.id);
+        if (!remoteM) {
+          memoMap.set(localM.id, localM);
+        } else {
+          const localTime = new Date(localM.updatedAt || localM.createdAt || 0).getTime();
+          const remoteTime = new Date(remoteM.updatedAt || remoteM.createdAt || 0).getTime();
+          if (localTime >= remoteTime) {
+            memoMap.set(localM.id, localM);
+          }
+        }
+      });
+
+      ms = Array.from(memoMap.values()).map(m => ({
+        ...m,
+        folder: fs.includes(m.folder) ? m.folder : '未分類'
+      }));
+      ms.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      // ローカルストレージと画面を更新
+      saveLocalOnly();
+      uc();
+      rma();
+      rfld();
+    }
+
+    // 統合後の最新状態をGistへ書き戻す
+    const mergedPayload = {
+      version: 2,
+      updatedAt: new Date().toISOString(),
+      memos: ms,
+      folders: fs,
+      deletedMemoIds,
+      deletedFolders
+    };
+
+    const patchRes = await ghFetch(`https://api.github.com/gists/${ghGistId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        files: {
+          [GIST_FILENAME]: {
+            content: JSON.stringify(mergedPayload)
+          }
+        }
+      })
+    });
+
+    if (!patchRes.ok) throw new Error(`保存失敗 (${patchRes.status})`);
+
+    setSyncIndicator('ok');
+    if (showToast) toast('GitHubと同期しました');
+  } catch (err) {
+    setSyncIndicator('error', err.message);
+    if (showToast) toast(`同期エラー: ${err.message}`);
+  } finally {
+    isSyncing = false;
+  }
+}
+
+// ==========================================
+// 入力・UI操作ロジック
+// ==========================================
 function htk(e) {
   if ((e.key === 'Enter' || e.keyCode === 13) && !e.isComposing && e.keyCode !== 229) {
     e.preventDefault();
@@ -340,7 +668,6 @@ function ibi(cid, vals) {
   }
 }
 
-// 箇条書き欄でエンター（日本語変換確定を除く）を押したときに次の行へ移動
 function hbk(e, idx, cid) {
   if ((e.key === 'Enter' || e.keyCode === 13) && !e.isComposing && e.keyCode !== 229) {
     e.preventDefault();
@@ -396,12 +723,14 @@ function sm(it = false) {
     if (!it) toast('何か記入してください');
     return;
   }
+  const nowIso = new Date().toISOString();
   ms.unshift({
     id: Date.now(),
     title: t || '無題',
     bullets: bs,
     folder: '未分類',
-    createdAt: new Date().toISOString()
+    createdAt: nowIso,
+    updatedAt: nowIso
   });
   sds();
   rf();
@@ -415,12 +744,19 @@ function rf() {
   rt();
 }
 
-function sds() {
+function saveLocalOnly() {
   localStorage.setItem('zm', JSON.stringify(ms));
   localStorage.setItem('zf', JSON.stringify(fs));
+  localStorage.setItem('zm_del', JSON.stringify(deletedMemoIds));
+  localStorage.setItem('zf_del', JSON.stringify(deletedFolders));
+}
+
+function sds() {
+  saveLocalOnly();
   uc();
   rma();
   rfld();
+  schedulePushToGist();
 }
 
 function uc() {
@@ -492,6 +828,7 @@ function cfm(id, nf) {
   let m = ms.find(x => x.id === id);
   if (m) {
     m.folder = nf;
+    m.updatedAt = new Date().toISOString();
     sds();
     toast(`「${nf}」へ移動しました`);
   }
@@ -523,6 +860,7 @@ function af() {
   let fn = document.getElementById('nfn').value.trim();
   if (fn && !fs.includes(fn)) {
     fs.push(fn);
+    deletedFolders = deletedFolders.filter(f => f !== fn);
     document.getElementById('nfn').value = '';
     cf = fn;
     sds();
@@ -532,10 +870,15 @@ function af() {
 
 function df(fn) {
   if (confirm(`フォルダ「${fn}」を削除しますか？\n（中のメモは「未分類」に移動します）`)) {
+    const nowIso = new Date().toISOString();
     ms.forEach(m => {
-      if (m.folder === fn) m.folder = '未分類';
+      if (m.folder === fn) {
+        m.folder = '未分類';
+        m.updatedAt = nowIso;
+      }
     });
     fs = fs.filter(f => f !== fn);
+    if (!deletedFolders.includes(fn)) deletedFolders.push(fn);
     if (cf === fn) cf = '未分類';
     sds();
     toast(`フォルダを削除しました`);
@@ -571,7 +914,7 @@ function rfms() {
 // データの書き出し（JSONダウンロード）
 function exportData() {
   const payload = {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     memos: ms,
     folders: fs
@@ -609,13 +952,17 @@ function importData(e) {
       }
       if (Array.isArray(data.folders)) {
         data.folders.forEach(f => {
-          if (typeof f === 'string' && !fs.includes(f)) fs.push(f);
+          if (typeof f === 'string' && !fs.includes(f)) {
+            fs.push(f);
+            deletedFolders = deletedFolders.filter(dfName => dfName !== f);
+          }
         });
       }
       const existingIds = new Set(ms.map(m => m.id));
       let addedCount = 0;
       data.memos.forEach(m => {
         if (m && m.id && !existingIds.has(m.id)) {
+          deletedMemoIds = deletedMemoIds.filter(did => did !== m.id);
           ms.push(m);
           addedCount++;
         }
@@ -722,6 +1069,7 @@ function sem() {
     let ats = Array.from(document.querySelectorAll(`.ea-${i}`)).map(a => a.value.trim()).filter(Boolean);
     m.bullets[i] = { text: bt, annotations: ats };
   }
+  m.updatedAt = new Date().toISOString();
   sds();
   cem();
   toast('メモを更新しました');
@@ -731,6 +1079,7 @@ function dem() {
   let id = Number(document.getElementById('emi').value);
   if (confirm('このメモを削除しますか？')) {
     ms = ms.filter(x => x.id !== id);
+    if (!deletedMemoIds.includes(id)) deletedMemoIds.push(id);
     sds();
     cem();
     toast('削除しました');
