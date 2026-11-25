@@ -2,7 +2,7 @@
 <html lang="ja" class="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#060a12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,758 +11,283 @@
 <link rel="apple-touch-icon" href="./icon.jpg">
 <title>0 SECOND THINKING</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   body {
     font-family: 'Inter', 'Noto Sans JP', sans-serif;
     background-color: #060a12;
     background-image:
-      radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08), transparent 60%),
-      linear-gradient(to right, rgba(56, 189, 248, 0.07) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(56, 189, 248, 0.07) 1px, transparent 1px);
+      radial-gradient(circle at 50% 0%, rgba(56,189,248,.08), transparent 60%),
+      linear-gradient(to right, rgba(56,189,248,.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(56,189,248,.07) 1px, transparent 1px);
     background-size: 100% 100%, 28px 28px, 28px 28px;
     color: #e2e8f0;
     padding-top: env(safe-area-inset-top);
     padding-bottom: calc(env(safe-area-inset-bottom) + 5.5rem);
     -webkit-tap-highlight-color: transparent;
   }
-  .font-mono-num {
-    font-family: 'JetBrains Mono', 'Inter', monospace;
-    font-variant-numeric: tabular-nums;
-  }
-  .glass-card {
-    background: rgba(15, 23, 36, 0.86);
+  .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+  .card {
+    background: rgba(15,23,36,.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(56, 189, 248, 0.16);
-    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(56,189,248,.16);
+    box-shadow: 0 12px 32px -8px rgba(0,0,0,.7);
   }
-  .input-dark {
-    background: rgba(10, 16, 28, 0.85);
-    border: 1px solid rgba(148, 163, 184, 0.22);
+  .inp {
+    background: rgba(10,16,28,.88);
+    border: 1px solid rgba(148,163,184,.24);
     color: #f8fafc;
-    transition: all 0.2s ease;
-  }
-  .input-dark:focus {
-    outline: none;
-    border-color: #38bdf8;
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
-    background: rgba(13, 21, 36, 0.98);
-  }
-  .btn-glow-white {
-    background: #ffffff;
-    color: #060a12;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.28);
-  }
-  .btn-glow-white:active {
-    transform: scale(0.98);
-  }
-  .timer-glow {
-    text-shadow: 0 0 24px rgba(255, 255, 255, 0.35);
-  }
-  .nav-safe {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  /* iOSズーム防止 */
-  input, select {
     font-size: 16px !important;
   }
+  .inp:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(56,189,248,.22);
+  }
+  .btn-w {
+    background: #fff;
+    color: #060a12;
+    box-shadow: 0 0 18px rgba(255,255,255,.25);
+  }
+  .btn-w:active { transform: scale(.98); }
+  .glow { text-shadow: 0 0 24px rgba(255,255,255,.35); }
 </style>
 </head>
-<body class="min-h-screen selection:bg-sky-500/30">
+<body class="min-h-screen">
 
-<!-- 通知トースト -->
-<div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white border border-sky-400/30 px-4 py-2 rounded-full text-xs font-semibold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2 backdrop-blur-md">
-  <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-  <span id="toast-msg"></span>
+<div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white border border-sky-400/30 px-4 py-2 rounded-full text-xs font-semibold shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+  <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span><span id="toast-msg"></span>
 </div>
 
-<!-- ヘッダー -->
 <header class="bg-[#060a12]/85 backdrop-blur-md border-b border-sky-500/15 px-4 py-3.5 sticky top-0 z-20">
   <div class="max-w-md mx-auto flex justify-between items-center">
     <div class="flex items-center gap-2">
       <h1 class="text-sm font-bold tracking-wider text-white">0 SECOND THINKING</h1>
-      <button type="button" id="sync-badge" onclick="manualSync()" title="タップして手動同期" class="hidden items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-[10px] font-mono-num text-slate-400 hover:border-sky-400/50 transition">
+      <button type="button" id="sync-badge" onclick="manualSync()" class="hidden items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-[10px] mono text-slate-400">
         <span id="sync-dot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
         <span id="sync-label">SYNC</span>
       </button>
     </div>
-    <div class="text-xs font-mono-num tracking-wide text-slate-400">
-      TODAY <span id="tc" class="text-sky-400 font-bold ml-1">0</span> <span class="text-slate-500">/ 10</span>
-    </div>
+    <div class="text-xs mono text-slate-400">TODAY <span id="tc" class="text-sky-400 font-bold ml-1">0</span> / 10</div>
   </div>
 </header>
 
 <main class="max-w-md mx-auto p-4 space-y-4">
-  <!-- 1. 書くタブ -->
-  <section id="tw" class="ts space-y-3">
-    <div class="glass-card p-5 rounded-3xl">
-      <!-- 中央デジタルタイマー -->
+  <!-- 書く -->
+  <section id="tw" class="ts">
+    <form id="memo-form" onsubmit="event.preventDefault()" class="card p-5 rounded-3xl">
       <div class="text-center mb-4">
-        <div class="text-[11px] font-semibold tracking-[0.2em] uppercase text-sky-300/80 mb-1">1 MIN SESSION</div>
-        <div id="td" class="text-5xl font-mono-num font-bold text-white tracking-wider timer-glow">01:00</div>
+        <div class="text-[11px] font-semibold tracking-[0.2em] text-sky-300/80 mb-1">1 MIN SESSION</div>
+        <div id="td" class="text-5xl mono font-bold text-white tracking-wider glow">01:00</div>
       </div>
-
-      <!-- タイトル入力欄（エンターで1行目へ移動） -->
       <div class="mb-3">
-        <input type="text" id="mt" enterkeyhint="next" autocomplete="off"
-          placeholder="タイトル"
-          class="input-dark w-full px-3.5 py-2.5 rounded-xl font-bold placeholder-slate-500"
-          onfocus="st()" onkeydown="htk(event)">
+        <input type="text" id="mt" enterkeyhint="next" autocomplete="off" placeholder="タイトル" onfocus="st()"
+          class="seq inp w-full px-3.5 py-2.5 rounded-xl font-bold placeholder-slate-500">
       </div>
-
-      <!-- 箇条書き6行 -->
       <div class="space-y-2.5" id="bic"></div>
-
-      <!-- 保存・クリアボタン -->
       <div class="mt-5 flex gap-2.5">
-        <button type="button" onclick="sm()" class="btn-glow-white flex-1 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center">
-          保存する
-        </button>
-        <button type="button" onclick="rf()" class="bg-slate-800/80 hover:bg-slate-800 border border-slate-700/70 active:scale-[0.98] transition text-slate-300 font-semibold py-3 px-5 rounded-xl text-sm">
-          クリア
-        </button>
+        <button type="button" onclick="sm()" class="btn-w flex-1 font-bold py-3 rounded-xl text-sm">保存する</button>
+        <button type="button" onclick="rf()" class="bg-slate-800/80 border border-slate-700 text-slate-300 font-semibold py-3 px-5 rounded-xl text-sm">クリア</button>
       </div>
-    </div>
+    </form>
   </section>
 
-  <!-- 2. フォルダ管理タブ -->
+  <!-- フォルダ -->
   <section id="tf" class="ts hidden space-y-4">
-    <div class="glass-card p-4 rounded-3xl space-y-3">
+    <div class="card p-4 rounded-3xl space-y-3">
       <h2 class="text-xs font-bold tracking-wider text-sky-300/80 text-center">フォルダ追加</h2>
-      <input type="text" id="nfn" placeholder="新規フォルダ名" class="input-dark w-full px-3.5 py-2.5 rounded-xl text-sm placeholder-slate-500">
-      <div class="flex justify-end">
-        <button type="button" onclick="af()" class="btn-glow-white px-6 py-2 rounded-xl text-xs font-bold transition">追加</button>
-      </div>
+      <input type="text" id="nfn" placeholder="新規フォルダ名" class="inp w-full px-3.5 py-2.5 rounded-xl text-sm placeholder-slate-500">
+      <div class="flex justify-end"><button type="button" onclick="af()" class="btn-w px-6 py-2 rounded-xl text-xs font-bold">追加</button></div>
     </div>
-
-    <div class="glass-card p-4 rounded-3xl space-y-3">
+    <div class="card p-4 rounded-3xl space-y-3">
       <div id="fl" class="space-y-2"></div>
-      <div class="pt-1">
-        <button type="button" onclick="epf(cf)" class="btn-glow-white w-full py-3 rounded-xl text-sm font-bold transition">
-          PDF出力（<span id="pdf-fn">未分類</span>）
-        </button>
-      </div>
+      <button type="button" onclick="epf(cf)" class="btn-w w-full py-3 rounded-xl text-sm font-bold">PDF出力（<span id="pdf-fn">未分類</span>）</button>
     </div>
-
-    <!-- 選択中フォルダのメモ一覧 -->
     <div id="fac" class="space-y-2.5"></div>
   </section>
 
-  <!-- 3. 全メモタブ -->
+  <!-- 全メモ -->
   <section id="ta" class="ts hidden space-y-3.5">
-    <div class="relative">
-      <input type="text" id="sb" placeholder="🔍 メモや注釈を検索..." oninput="rma()" class="input-dark w-full px-4 py-3 rounded-2xl text-sm placeholder-slate-500">
-    </div>
+    <input type="text" id="sb" placeholder="🔍 メモや注釈を検索..." oninput="rma()" class="inp w-full px-4 py-3 rounded-2xl text-sm placeholder-slate-500">
     <div id="aml" class="space-y-3"></div>
   </section>
 
-  <!-- 4. 統計・同期・データ管理タブ -->
+  <!-- 統計・同期 -->
   <section id="ts" class="ts hidden space-y-4">
-    <!-- 本日の達成度＆累計枚数カード -->
-    <div class="glass-card p-6 rounded-3xl text-center space-y-4">
+    <div class="card p-6 rounded-3xl text-center space-y-4">
       <h2 class="text-xs font-bold tracking-widest text-sky-300/80">本日の達成度</h2>
-      <div class="font-mono-num font-bold text-white tracking-tight">
-        <span id="stc" class="text-5xl">0</span>
-        <span class="text-2xl text-slate-400 mx-1">/</span>
-        <span class="text-3xl text-slate-200">10</span>
-        <span class="text-base text-slate-300 ml-1 font-sans">枚</span>
+      <div class="mono font-bold text-white">
+        <span id="stc" class="text-5xl">0</span><span class="text-2xl text-slate-400 mx-1">/</span><span class="text-3xl text-slate-200">10</span><span class="text-base text-slate-300 ml-1 font-sans">枚</span>
       </div>
-
-      <!-- プログレスバー -->
-      <div class="w-full bg-slate-900/90 rounded-full h-6 p-1 border border-sky-400/30 relative overflow-hidden">
-        <div id="spb" class="h-full rounded-full bg-gradient-to-r from-indigo-500 via-sky-500 to-cyan-400 transition-all duration-500 flex items-center justify-end pr-2" style="width:0%">
-        </div>
-        <span id="spb-txt" class="absolute inset-0 flex items-center justify-center text-[11px] font-mono-num font-bold text-white drop-shadow">0%</span>
+      <div class="w-full bg-slate-900 rounded-full h-6 p-1 border border-sky-400/30 relative overflow-hidden">
+        <div id="spb" class="h-full rounded-full bg-gradient-to-r from-indigo-500 via-sky-500 to-cyan-400 transition-all duration-500" style="width:0%"></div>
+        <span id="spb-txt" class="absolute inset-0 flex items-center justify-center text-[11px] mono font-bold text-white">0%</span>
       </div>
-
-      <!-- 今までの総枚数（累計） -->
-      <div class="pt-3 border-t border-slate-800/90 flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-900/60 border border-sky-400/15">
-        <span class="text-xs font-bold tracking-wider text-slate-300">今までの総枚数</span>
-        <div class="font-mono-num font-bold text-sky-400">
-          <span id="total-mc" class="text-2xl">0</span>
-          <span class="text-xs text-slate-400 ml-1 font-sans">枚</span>
-        </div>
+      <div class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-900/70 border border-sky-400/15">
+        <span class="text-xs font-bold text-slate-300">今までの総枚数</span>
+        <div class="mono font-bold text-sky-400"><span id="total-mc" class="text-2xl">0</span><span class="text-xs text-slate-400 ml-1 font-sans">枚</span></div>
       </div>
-
-      <p class="text-xs text-slate-300 leading-relaxed pt-1">
-        1分間で思考を言語化し、頭の中を<br>クリアにしましょう。
-      </p>
+      <p class="text-xs text-slate-300 leading-relaxed">1分間で思考を言語化し、頭の中を<br>クリアにしましょう。</p>
     </div>
 
-    <!-- GitHub Gist 自動同期設定カード -->
-    <div class="glass-card p-5 rounded-3xl space-y-3">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xs font-bold tracking-wider text-sky-300/80">GitHub クラウド自動同期</h3>
-        <span id="sync-status-text" class="text-[10px] font-mono-num text-slate-400">未設定</span>
+    <div class="card p-5 rounded-3xl space-y-3">
+      <div class="flex justify-between items-center">
+        <h3 class="text-xs font-bold text-sky-300/80">GitHub クラウド自動同期</h3>
+        <span id="sync-status-text" class="text-[10px] mono text-slate-400">未設定</span>
       </div>
-      <p class="text-[11px] text-slate-400 leading-relaxed">
-        GitHubの「gist」権限トークンを各端末に一度だけ登録すると、メモとフォルダが非公開Gist経由で自動同期されます。
-      </p>
-      <div class="space-y-2">
-        <input type="password" id="gh-token-input" autocomplete="off" placeholder="ghp_...（GitHubトークンを貼り付け）" class="input-dark w-full px-3.5 py-2.5 rounded-xl text-xs font-mono-num placeholder-slate-500">
-        <div class="flex gap-2">
-          <button type="button" onclick="saveSyncSettings()" class="btn-glow-white flex-1 py-2.5 rounded-xl text-xs font-bold transition">
-            保存して同期
-          </button>
-          <button type="button" id="sync-disconnect-btn" onclick="disconnectSync()" class="hidden bg-rose-950/70 border border-rose-800/60 hover:bg-rose-900/70 text-rose-300 font-bold px-3.5 py-2.5 rounded-xl text-xs transition">
-            解除
-          </button>
-        </div>
+      <p class="text-[11px] text-slate-400 leading-relaxed">GitHubの「gist」権限トークンを各端末に登録すると、メモとフォルダが自動同期されます。</p>
+      <input type="password" id="gh-token-input" autocomplete="off" placeholder="ghp_...（GitHubトークン）" class="inp w-full px-3.5 py-2.5 rounded-xl text-xs mono placeholder-slate-500">
+      <div class="flex gap-2">
+        <button type="button" onclick="saveSyncSettings()" class="btn-w flex-1 py-2.5 rounded-xl text-xs font-bold">保存して同期</button>
+        <button type="button" id="sync-disconnect-btn" onclick="disconnectSync()" class="hidden bg-rose-950/70 border border-rose-800/60 text-rose-300 font-bold px-3.5 py-2.5 rounded-xl text-xs">解除</button>
       </div>
-      <div id="sync-last-time" class="text-[10px] font-mono-num text-slate-500 text-right hidden"></div>
+      <div id="sync-last-time" class="text-[10px] mono text-slate-500 text-right hidden"></div>
     </div>
 
-    <!-- データの書き出し・復元カード -->
-    <div class="glass-card p-5 rounded-3xl space-y-3">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xs font-bold tracking-wider text-sky-300/80">ローカルバックアップ（JSON）</h3>
-        <span class="text-[10px] font-mono-num text-slate-400">FILE</span>
+    <div class="card p-5 rounded-3xl space-y-3">
+      <div class="flex justify-between items-center">
+        <h3 class="text-xs font-bold text-sky-300/80">ローカルバックアップ（JSON）</h3>
+        <span class="text-[10px] mono text-slate-400">FILE</span>
       </div>
       <div class="grid grid-cols-2 gap-2.5">
-        <button type="button" onclick="exportData()" class="bg-slate-800/90 hover:bg-slate-800 border border-sky-400/30 active:scale-[0.98] text-sky-300 font-bold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
-          <span>📤</span> 書き出し
-        </button>
-        <label class="bg-slate-800/90 hover:bg-slate-800 border border-slate-700 active:scale-[0.98] text-slate-200 font-bold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
-          <span>📥</span> 復元する
-          <input type="file" id="import-file" accept=".json,application/json" class="hidden" onchange="importData(event)">
+        <button type="button" onclick="exportData()" class="bg-slate-800/90 border border-sky-400/30 text-sky-300 font-bold py-2.5 rounded-xl text-xs">📤 書き出し</button>
+        <label class="bg-slate-800/90 border border-slate-700 text-slate-200 font-bold py-2.5 rounded-xl text-xs text-center cursor-pointer">
+          📥 復元する<input type="file" accept=".json,application/json" class="hidden" onchange="importData(event)">
         </label>
       </div>
     </div>
   </section>
 </main>
 
-<!-- ボトムナビゲーション -->
-<nav class="fixed bottom-0 left-0 right-0 bg-[#060a12]/95 backdrop-blur-md border-t border-sky-500/15 z-20 nav-safe">
+<nav class="fixed bottom-0 left-0 right-0 bg-[#060a12]/95 backdrop-blur-md border-t border-sky-500/15 z-20" style="padding-bottom:env(safe-area-inset-bottom)">
   <div class="max-w-md mx-auto flex justify-around py-2.5">
-    <button type="button" onclick="sbt('tw')" id="nv-tw" class="nb flex flex-col items-center gap-1 text-white transition">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/></svg>
-      <span class="text-[10px] font-bold tracking-wide">書く</span>
-    </button>
-    <button type="button" onclick="sbt('tf')" id="nv-tf" class="nb flex flex-col items-center gap-1 text-slate-500 transition">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/></svg>
-      <span class="text-[10px] font-bold tracking-wide">フォルダ</span>
-    </button>
-    <button type="button" onclick="sbt('ta')" id="nv-ta" class="nb flex flex-col items-center gap-1 text-slate-500 transition">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-      <span class="text-[10px] font-bold tracking-wide">全メモ</span>
-    </button>
-    <button type="button" onclick="sbt('ts')" id="nv-ts" class="nb flex flex-col items-center gap-1 text-slate-500 transition">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
-      <span class="text-[10px] font-bold tracking-wide">統計</span>
-    </button>
+    <button type="button" onclick="sbt('tw')" id="nv-tw" class="nb flex flex-col items-center gap-1 text-white"><span class="text-base">✍️</span><span class="text-[10px] font-bold">書く</span></button>
+    <button type="button" onclick="sbt('tf')" id="nv-tf" class="nb flex flex-col items-center gap-1 text-slate-500"><span class="text-base">📁</span><span class="text-[10px] font-bold">フォルダ</span></button>
+    <button type="button" onclick="sbt('ta')" id="nv-ta" class="nb flex flex-col items-center gap-1 text-slate-500"><span class="text-base">📄</span><span class="text-[10px] font-bold">全メモ</span></button>
+    <button type="button" onclick="sbt('ts')" id="nv-ts" class="nb flex flex-col items-center gap-1 text-slate-500"><span class="text-base">📊</span><span class="text-[10px] font-bold">統計</span></button>
   </div>
 </nav>
 
-<!-- 編集モーダル -->
 <div id="em" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center p-3 backdrop-blur-sm">
-  <div class="glass-card w-full max-w-md max-h-[85vh] overflow-y-auto rounded-3xl p-4 space-y-3 text-slate-100">
-    <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
-      <h2 class="text-xs font-bold tracking-wider text-sky-300/80">メモを編集・注釈追加</h2>
-      <button type="button" onclick="cem()" class="text-xl font-bold text-slate-400 hover:text-white px-1">×</button>
+  <div class="card w-full max-w-md max-h-[85vh] overflow-y-auto rounded-3xl p-4 space-y-3 text-slate-100">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+      <h2 class="text-xs font-bold text-sky-300/80">メモを編集・注釈追加</h2>
+      <button type="button" onclick="cem()" class="text-xl font-bold text-slate-400 px-1">×</button>
     </div>
     <input type="hidden" id="emi">
-    <input type="text" id="et" class="input-dark w-full px-3 py-2 text-base font-bold rounded-xl">
+    <input type="text" id="et" class="inp w-full px-3 py-2 text-base font-bold rounded-xl">
     <div id="ebc" class="space-y-3"></div>
-    <div class="flex gap-2.5 pt-2.5 border-t border-slate-800">
-      <button type="button" onclick="sem()" class="btn-glow-white flex-1 font-bold py-2.5 rounded-xl text-sm transition">保存</button>
-      <button type="button" onclick="dem()" class="bg-rose-950/70 border border-rose-800/60 hover:bg-rose-900/70 text-rose-300 font-bold px-4 py-2.5 rounded-xl text-sm transition">削除</button>
+    <div class="flex gap-2.5 pt-2 border-t border-slate-800">
+      <button type="button" onclick="sem()" class="btn-w flex-1 font-bold py-2.5 rounded-xl text-sm">保存</button>
+      <button type="button" onclick="dem()" class="bg-rose-950/70 border border-rose-800/60 text-rose-300 font-bold px-4 py-2.5 rounded-xl text-sm">削除</button>
     </div>
   </div>
 </div>
 
 <script>
-// PWA Dynamic Manifest & Service Worker Setup
-(function setupPWA() {
-  const iconFullUrl = new URL('./icon.jpg', window.location.href).href;
-  const manifest = {
-    name: "ゼロ秒思考 1分メモ",
-    short_name: "ゼロ秒思考",
-    description: "1分間で思考を深めるゼロ秒思考トレーニングアプリ",
-    start_url: new URL('./', window.location.href).href,
-    display: "standalone",
-    background_color: "#060a12",
-    theme_color: "#060a12",
-    icons: [
-      {
-        src: iconFullUrl,
-        sizes: "512x512",
-        type: "image/jpeg",
-        purpose: "any maskable"
-      }
-    ]
-  };
-  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-  const manifestUrl = URL.createObjectURL(manifestBlob);
-  const linkManifest = document.createElement('link');
-  linkManifest.rel = 'manifest';
-  linkManifest.href = manifestUrl;
-  document.head.appendChild(linkManifest);
-
-  if ('serviceWorker' in navigator) {
-    const swCode = `
-      const CACHE_NAME = 'zero-sec-v5';
-      self.addEventListener('install', e => { self.skipWaiting(); });
-      self.addEventListener('activate', e => { clients.claim(); });
-      self.addEventListener('fetch', e => {
-        if (e.request.url.includes('api.github.com')) return;
-        e.respondWith(
-          fetch(e.request).catch(() => caches.match(e.request))
-        );
-      });
-    `;
-    const swBlob = new Blob([swCode], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swUrl).catch(() => {});
+(function(){
+  const icon = new URL('./icon.jpg', location.href).href;
+  const m = { name:"ゼロ秒思考 1分メモ", short_name:"ゼロ秒思考", start_url:new URL('./', location.href).href, display:"standalone", background_color:"#060a12", theme_color:"#060a12", icons:[{src:icon,sizes:"512x512",type:"image/jpeg",purpose:"any maskable"}] };
+  const l = document.createElement('link'); l.rel='manifest'; l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'})); document.head.appendChild(l);
+  if('serviceWorker' in navigator){
+    const sw = `self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>clients.claim());self.addEventListener('fetch',e=>{if(e.request.url.includes('api.github.com'))return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});`;
+    navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
   }
 })();
 
-// App State (Local First)
-const DEFAULT_FOLDERS = ["未分類", "仕事", "プライベート", "思考"];
-const GIST_FILENAME = "zero-second-thinking-sync.json";
-
+const GIST_FILE = "zero-second-thinking-sync.json";
 let ms = JSON.parse(localStorage.getItem('zm') || '[]');
-let fs = JSON.parse(localStorage.getItem('zf') || JSON.stringify(DEFAULT_FOLDERS));
-let deletedMemoIds = JSON.parse(localStorage.getItem('zm_del') || '[]');
-let deletedFolders = JSON.parse(localStorage.getItem('zf_del') || '[]');
-
+let fs = JSON.parse(localStorage.getItem('zf') || '["未分類","仕事","プライベート","思考"]');
+let delM = JSON.parse(localStorage.getItem('zm_del') || '[]');
+let delF = JSON.parse(localStorage.getItem('zf_del') || '[]');
 let ghToken = localStorage.getItem('gh_sync_token') || '';
 let ghGistId = localStorage.getItem('gh_sync_gist_id') || '';
-let isSyncing = false;
-let pushTimer = null;
-
-let cf = "未分類", tm = null, tl = 60, tr = false;
+let isSyncing = false, pushTimer = null, cf = "未分類", tm = null, tl = 60, tr = false;
 
 window.onload = () => {
-  // 1. ローカルデータを即座に描画（起動遅延ゼロ）
-  ibi('bic', ['', '', '', '', '', '']);
-  uc();
-  rfld();
-  rma();
-  sbt('tw');
-  updateSyncUI();
-
-  // 2. トークン設定済みならバックグラウンドで自動同期
-  if (ghToken) {
-    syncWithGist(false);
-  }
+  ibi('bic', ['','','','','','']);
+  bindSeq(); uc(); rfld(); rma(); sbt('tw'); updateSyncUI();
+  if (ghToken) syncWithGist(false);
 };
-
-// アプリがバックグラウンドから復帰したときも自動同期
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && ghToken && !isSyncing) {
-    syncWithGist(false);
-  }
+  if (document.visibilityState === 'visible' && ghToken && !isSyncing) syncWithGist(false);
 });
 
 function toast(msg) {
   const el = document.getElementById('toast');
   document.getElementById('toast-msg').innerText = msg;
-  el.classList.remove('opacity-0', 'pointer-events-none');
-  setTimeout(() => el.classList.add('opacity-0', 'pointer-events-none'), 2400);
+  el.classList.remove('opacity-0','pointer-events-none');
+  setTimeout(() => el.classList.add('opacity-0','pointer-events-none'), 2200);
 }
 
-// ==========================================
-// GitHub Secret Gist 自動同期エンジン
-// ==========================================
-function setSyncIndicator(state, detail = '') {
-  const badge = document.getElementById('sync-badge');
-  const dot = document.getElementById('sync-dot');
-  const label = document.getElementById('sync-label');
-  const statusText = document.getElementById('sync-status-text');
-
-  if (!ghToken) {
-    badge.classList.add('hidden');
-    badge.classList.remove('flex');
-    if (statusText) {
-      statusText.innerText = '未設定';
-      statusText.className = 'text-[10px] font-mono-num text-slate-400';
-    }
-    return;
-  }
-
-  badge.classList.remove('hidden');
-  badge.classList.add('flex');
-
-  if (state === 'syncing') {
-    dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping';
-    label.innerText = 'SYNCING';
-    if (statusText) {
-      statusText.innerText = '同期中...';
-      statusText.className = 'text-[10px] font-mono-num text-amber-400';
-    }
-  } else if (state === 'ok') {
-    dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
-    label.innerText = 'SYNCED';
-    if (statusText) {
-      statusText.innerText = '連携済み ✓';
-      statusText.className = 'text-[10px] font-mono-num text-emerald-400';
-    }
-    const lastEl = document.getElementById('sync-last-time');
-    if (lastEl) {
-      const now = new Date();
-      lastEl.innerText = `最終同期: ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-      lastEl.classList.remove('hidden');
-    }
-  } else if (state === 'error') {
-    dot.className = 'w-1.5 h-1.5 rounded-full bg-rose-500';
-    label.innerText = 'ERR';
-    if (statusText) {
-      statusText.innerText = detail || '同期エラー';
-      statusText.className = 'text-[10px] font-mono-num text-rose-400';
-    }
-  }
-}
-
-function updateSyncUI() {
-  const input = document.getElementById('gh-token-input');
-  const discBtn = document.getElementById('sync-disconnect-btn');
-  if (ghToken) {
-    input.value = ghToken;
-    discBtn.classList.remove('hidden');
-    setSyncIndicator('ok');
-  } else {
-    input.value = '';
-    discBtn.classList.add('hidden');
-    setSyncIndicator('none');
-  }
-}
-
-function saveSyncSettings() {
-  const val = document.getElementById('gh-token-input').value.trim();
-  if (!val) {
-    toast('トークンを入力してください');
-    return;
-  }
-  ghToken = val;
-  ghGistId = ''; // 新しいトークンで再検出させる
-  localStorage.setItem('gh_sync_token', ghToken);
-  localStorage.removeItem('gh_sync_gist_id');
-  updateSyncUI();
-  syncWithGist(true);
-}
-
-function disconnectSync() {
-  if (!confirm('GitHub自動同期を解除しますか？\n（スマホ内のメモデータはそのまま残ります）')) return;
-  ghToken = '';
-  ghGistId = '';
-  localStorage.removeItem('gh_sync_token');
-  localStorage.removeItem('gh_sync_gist_id');
-  document.getElementById('sync-last-time').classList.add('hidden');
-  updateSyncUI();
-  toast('自動同期を解除しました');
-}
-
-function manualSync() {
-  if (!ghToken || isSyncing) return;
-  syncWithGist(true);
-}
-
-function schedulePushToGist() {
-  if (!ghToken) return;
-  clearTimeout(pushTimer);
-  pushTimer = setTimeout(() => {
-    syncWithGist(false);
-  }, 800);
-}
-
-async function ghFetch(url, options = {}) {
-  const headers = {
-    'Authorization': `token ${ghToken}`,
-    'Accept': 'application/vnd.github+json',
-    'Content-Type': 'application/json',
-    ...(options.headers || {})
-  };
-  return fetch(url, { ...options, headers, cache: 'no-store' });
-}
-
-async function findOrCreateGist() {
-  // 1. すでにGist IDを保持している場合は確認
-  if (ghGistId) {
-    const res = await ghFetch(`https://api.github.com/gists/${ghGistId}`);
-    if (res.ok) return await res.json();
-    if (res.status === 404) {
-      ghGistId = '';
-      localStorage.removeItem('gh_sync_gist_id');
-    } else {
-      throw new Error(`HTTP ${res.status}`);
-    }
-  }
-
-  // 2. ユーザーのGist一覧から既存の同期用Gistを探す（2台目端末での自動検出）
-  const listRes = await ghFetch('https://api.github.com/gists?per_page=100');
-  if (!listRes.ok) {
-    if (listRes.status === 401) throw new Error('トークン無効');
-    throw new Error(`HTTP ${listRes.status}`);
-  }
-  const gists = await listRes.json();
-  const found = gists.find(g => g.files && g.files[GIST_FILENAME]);
-  if (found) {
-    ghGistId = found.id;
-    localStorage.setItem('gh_sync_gist_id', ghGistId);
-    const detailRes = await ghFetch(`https://api.github.com/gists/${ghGistId}`);
-    if (detailRes.ok) return await detailRes.json();
-  }
-
-  // 3. 見つからなければ非公開（Secret）Gistを新規作成
-  const initialPayload = {
-    version: 2,
-    updatedAt: new Date().toISOString(),
-    memos: ms,
-    folders: fs,
-    deletedMemoIds,
-    deletedFolders
-  };
-  const createRes = await ghFetch('https://api.github.com/gists', {
-    method: 'POST',
-    body: JSON.stringify({
-      description: '0 Second Thinking App Sync Data (Private)',
-      public: false,
-      files: {
-        [GIST_FILENAME]: {
-          content: JSON.stringify(initialPayload)
-        }
+// iPhone日本語キーボード対応の連続フォーカス移動
+function bindSeq() {
+  const fields = Array.from(document.querySelectorAll('.seq'));
+  fields.forEach((el, idx) => {
+    let comp = false, compEnd = 0;
+    el.addEventListener('compositionstart', () => comp = true);
+    el.addEventListener('compositionend', () => { comp = false; compEnd = Date.now(); });
+    const goNext = (e) => {
+      if (comp || e.isComposing || e.keyCode === 229 || (Date.now() - compEnd < 90)) return;
+      if (e.key === 'Enter' || e.keyCode === 13) {
+        e.preventDefault(); e.stopPropagation();
+        if (idx < fields.length - 1) {
+          const nxt = fields[idx + 1];
+          nxt.focus({ preventScroll: true });
+          setTimeout(() => { nxt.focus({ preventScroll: true }); nxt.scrollIntoView({ behavior:'smooth', block:'center' }); }, 15);
+        } else { el.blur(); sm(); }
       }
-    })
-  });
-  if (!createRes.ok) throw new Error(`作成失敗 (${createRes.status})`);
-  const created = await createRes.json();
-  ghGistId = created.id;
-  localStorage.setItem('gh_sync_gist_id', ghGistId);
-  return created;
-}
-
-async function syncWithGist(showToast = false) {
-  if (!ghToken || isSyncing) return;
-  isSyncing = true;
-  setSyncIndicator('syncing');
-
-  try {
-    const gist = await findOrCreateGist();
-    const fileObj = gist.files && gist.files[GIST_FILENAME];
-    let remote = null;
-
-    if (fileObj) {
-      if (fileObj.truncated && fileObj.raw_url) {
-        const rawRes = await fetch(fileObj.raw_url, { cache: 'no-store' });
-        remote = await rawRes.json();
-      } else if (fileObj.content) {
-        remote = JSON.parse(fileObj.content);
-      }
-    }
-
-    if (remote && Array.isArray(remote.memos)) {
-      // 削除済みIDの統合（直近500件まで保持）
-      const delMemoSet = new Set([...deletedMemoIds, ...(remote.deletedMemoIds || [])]);
-      deletedMemoIds = Array.from(delMemoSet).slice(-500);
-
-      const delFolderSet = new Set([...deletedFolders, ...(remote.deletedFolders || [])]);
-      deletedFolders = Array.from(delFolderSet).filter(f => f !== '未分類').slice(-100);
-
-      // フォルダの統合（削除済みフォルダは除外し、ローカル・リモート両方のフォルダを保持）
-      const mergedFolders = ['未分類'];
-      [...fs, ...(remote.folders || [])].forEach(f => {
-        if (typeof f === 'string' && f && !delFolderSet.has(f) && !mergedFolders.includes(f)) {
-          mergedFolders.push(f);
-        }
-      });
-      fs = mergedFolders;
-      if (!fs.includes(cf)) cf = '未分類';
-
-      // メモの統合（同じIDなら更新日時が新しい方を優先）
-      const memoMap = new Map();
-      remote.memos.forEach(m => {
-        if (m && m.id && !delMemoSet.has(m.id)) {
-          memoMap.set(m.id, m);
-        }
-      });
-      ms.forEach(localM => {
-        if (!localM || !localM.id || delMemoSet.has(localM.id)) return;
-        const remoteM = memoMap.get(localM.id);
-        if (!remoteM) {
-          memoMap.set(localM.id, localM);
-        } else {
-          const localTime = new Date(localM.updatedAt || localM.createdAt || 0).getTime();
-          const remoteTime = new Date(remoteM.updatedAt || remoteM.createdAt || 0).getTime();
-          if (localTime >= remoteTime) {
-            memoMap.set(localM.id, localM);
-          }
-        }
-      });
-
-      ms = Array.from(memoMap.values()).map(m => ({
-        ...m,
-        folder: fs.includes(m.folder) ? m.folder : '未分類'
-      }));
-      ms.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-      // ローカルストレージと画面を更新
-      saveLocalOnly();
-      uc();
-      rma();
-      rfld();
-    }
-
-    // 統合後の最新状態をGistへ書き戻す
-    const mergedPayload = {
-      version: 2,
-      updatedAt: new Date().toISOString(),
-      memos: ms,
-      folders: fs,
-      deletedMemoIds,
-      deletedFolders
     };
-
-    const patchRes = await ghFetch(`https://api.github.com/gists/${ghGistId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        files: {
-          [GIST_FILENAME]: {
-            content: JSON.stringify(mergedPayload)
-          }
-        }
-      })
-    });
-
-    if (!patchRes.ok) throw new Error(`保存失敗 (${patchRes.status})`);
-
-    setSyncIndicator('ok');
-    if (showToast) toast('GitHubと同期しました');
-  } catch (err) {
-    setSyncIndicator('error', err.message);
-    if (showToast) toast(`同期エラー: ${err.message}`);
-  } finally {
-    isSyncing = false;
-  }
-}
-
-// ==========================================
-// 入力・UI操作ロジック
-// ==========================================
-function htk(e) {
-  if ((e.key === 'Enter' || e.keyCode === 13) && !e.isComposing && e.keyCode !== 229) {
-    e.preventDefault();
-    const firstBullet = document.querySelector('.bi-bic');
-    if (firstBullet) {
-      firstBullet.focus();
-      firstBullet.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }
+    el.addEventListener('keypress', goNext);
+    el.addEventListener('keydown', goNext);
+  });
 }
 
 function ibi(cid, vals) {
-  let c = document.getElementById(cid);
-  c.innerHTML = '';
+  const c = document.getElementById(cid); c.innerHTML = '';
   for (let i = 0; i < 6; i++) {
-    let d = document.createElement('div');
-    d.className = 'relative flex items-center';
-    let hint = i < 5 ? 'next' : 'done';
-    d.innerHTML = `
-      <span class="absolute left-3.5 text-sm font-mono-num font-bold text-slate-400 pointer-events-none">${i + 1}.</span>
-      <input type="text" value="${vals[i] || ''}" placeholder="アイデアを入力..."
-        enterkeyhint="${hint}" autocomplete="off"
-        class="bi-${cid} input-dark w-full pl-9 pr-3.5 py-2.5 rounded-xl text-sm font-medium placeholder-slate-500"
-        onkeydown="hbk(event, ${i}, '${cid}')">
-    `;
+    const d = document.createElement('div'); d.className = 'relative flex items-center';
+    d.innerHTML = `<span class="absolute left-3.5 text-sm mono font-bold text-slate-400 pointer-events-none">${i+1}.</span>
+      <input type="text" value="${vals[i]||''}" placeholder="アイデアを入力..." enterkeyhint="${i<5?'next':'done'}" autocomplete="off"
+      class="seq bi-${cid} inp w-full pl-9 pr-3.5 py-2.5 rounded-xl text-sm font-medium placeholder-slate-500">`;
     c.appendChild(d);
   }
 }
 
-function hbk(e, idx, cid) {
-  if ((e.key === 'Enter' || e.keyCode === 13) && !e.isComposing && e.keyCode !== 229) {
-    e.preventDefault();
-    let ins = document.querySelectorAll(`.${cid}`);
-    if (idx < 5) {
-      ins[idx + 1].focus();
-      ins[idx + 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else if (cid === 'bic') {
-      ins[idx].blur();
-      sm();
-    }
-  }
-}
-
 function st() {
-  if (tr) return;
-  tr = true;
-  tl = 60;
-  utd();
-  clearInterval(tm);
-  tm = setInterval(() => {
-    tl--;
-    utd();
-    if (tl <= 0) {
-      clearInterval(tm);
-      tr = false;
-      sm(true);
-    }
-  }, 1000);
+  if (tr) return; tr = true; tl = 60; utd(); clearInterval(tm);
+  tm = setInterval(() => { tl--; utd(); if (tl <= 0) { clearInterval(tm); tr = false; sm(true); } }, 1000);
 }
-
 function utd() {
   const el = document.getElementById('td');
-  el.innerText = `${String(Math.floor(tl / 60)).padStart(2, '0')}:${String(tl % 60).padStart(2, '0')}`;
-  if (tl <= 10) {
-    el.className = 'text-5xl font-mono-num font-bold text-rose-400 tracking-wider animate-pulse';
-  } else {
-    el.className = 'text-5xl font-mono-num font-bold text-white tracking-wider timer-glow';
-  }
+  el.innerText = `${String(Math.floor(tl/60)).padStart(2,'0')}:${String(tl%60).padStart(2,'0')}`;
+  el.className = tl <= 10 ? 'text-5xl mono font-bold text-rose-400 tracking-wider animate-pulse' : 'text-5xl mono font-bold text-white tracking-wider glow';
 }
-
-function rt() {
-  clearInterval(tm);
-  tr = false;
-  tl = 60;
-  utd();
-}
+function rt() { clearInterval(tm); tr = false; tl = 60; utd(); }
 
 function sm(it = false) {
-  let t = document.getElementById('mt').value.trim();
-  let bs = Array.from(document.querySelectorAll('.bi-bic')).map(i => ({ text: i.value.trim(), annotations: [] }));
-  if (!t && bs.every(b => !b.text)) {
-    if (!it) toast('何か記入してください');
-    return;
-  }
-  const nowIso = new Date().toISOString();
-  ms.unshift({
-    id: Date.now(),
-    title: t || '無題',
-    bullets: bs,
-    folder: '未分類',
-    createdAt: nowIso,
-    updatedAt: nowIso
-  });
-  sds();
-  rf();
-  toast(it ? '1分経過：自動保存しました' : '保存しました');
-  sbt('ta');
+  const t = document.getElementById('mt').value.trim();
+  const bs = Array.from(document.querySelectorAll('.bi-bic')).map(i => ({ text: i.value.trim(), annotations: [] }));
+  if (!t && bs.every(b => !b.text)) { if (!it) toast('何か記入してください'); return; }
+  const now = new Date().toISOString();
+  ms.unshift({ id: Date.now(), title: t || '無題', bullets: bs, folder: '未分類', createdAt: now, updatedAt: now });
+  sds(); rf(); toast(it ? '1分経過：自動保存しました' : '保存しました'); sbt('ta');
 }
+function rf() { document.getElementById('mt').value = ''; ibi('bic', ['','','','','','']); bindSeq(); rt(); }
 
-function rf() {
-  document.getElementById('mt').value = '';
-  ibi('bic', ['', '', '', '', '', '']);
-  rt();
-}
-
-function saveLocalOnly() {
+function saveLocal() {
   localStorage.setItem('zm', JSON.stringify(ms));
   localStorage.setItem('zf', JSON.stringify(fs));
-  localStorage.setItem('zm_del', JSON.stringify(deletedMemoIds));
-  localStorage.setItem('zf_del', JSON.stringify(deletedFolders));
+  localStorage.setItem('zm_del', JSON.stringify(delM));
+  localStorage.setItem('zf_del', JSON.stringify(delF));
 }
-
-function sds() {
-  saveLocalOnly();
-  uc();
-  rma();
-  rfld();
-  schedulePushToGist();
-}
+function sds() { saveLocal(); uc(); rma(); rfld(); if (ghToken) { clearTimeout(pushTimer); pushTimer = setTimeout(() => syncWithGist(false), 800); } }
 
 function uc() {
-  let ts = new Date().toDateString();
-  let tc = ms.filter(m => new Date(m.createdAt).toDateString() === ts).length;
-  let pct = Math.min(Math.round((tc / 10) * 100), 100);
+  const today = new Date().toDateString();
+  const tc = ms.filter(m => new Date(m.createdAt).toDateString() === today).length;
+  const pct = Math.min(Math.round((tc / 10) * 100), 100);
   document.getElementById('tc').innerText = tc;
   document.getElementById('stc').innerText = tc;
   document.getElementById('spb').style.width = `${pct}%`;
@@ -772,323 +297,199 @@ function uc() {
 
 function sbt(n) {
   document.querySelectorAll('.ts').forEach(e => e.classList.add('hidden'));
-  document.querySelectorAll('.nb').forEach(e => {
-    e.classList.remove('text-white');
-    e.classList.add('text-slate-500');
-  });
+  document.querySelectorAll('.nb').forEach(e => { e.classList.remove('text-white'); e.classList.add('text-slate-500'); });
   document.getElementById(n).classList.remove('hidden');
-  let an = document.getElementById(`nv-${n}`);
-  an.classList.remove('text-slate-500');
-  an.classList.add('text-white');
+  const an = document.getElementById(`nv-${n}`); an.classList.remove('text-slate-500'); an.classList.add('text-white');
 }
 
 function rma() {
-  let q = document.getElementById('sb').value.toLowerCase();
-  let c = document.getElementById('aml');
-  c.innerHTML = '';
-  let fms = ms.filter(m => m.title.toLowerCase().includes(q) || m.bullets.some(b => b.text.toLowerCase().includes(q) || (b.annotations || []).some(a => a.toLowerCase().includes(q))));
-  if (fms.length === 0) {
-    c.innerHTML = `<div class="text-center py-10 text-slate-500 text-xs">メモが見つかりません</div>`;
-    return;
-  }
+  const q = document.getElementById('sb').value.toLowerCase();
+  const c = document.getElementById('aml'); c.innerHTML = '';
+  const fms = ms.filter(m => m.title.toLowerCase().includes(q) || m.bullets.some(b => b.text.toLowerCase().includes(q) || (b.annotations||[]).some(a => a.toLowerCase().includes(q))));
+  if (!fms.length) { c.innerHTML = `<div class="text-center py-10 text-slate-500 text-xs">メモが見つかりません</div>`; return; }
   fms.forEach(m => {
-    let d = document.createElement('div');
-    d.className = 'glass-card p-4 rounded-2xl space-y-2.5';
-    let dt = new Date(m.createdAt);
-    let ds = `${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
-    let fo = fs.map(f => `<option value="${f}" ${m.folder === f ? 'selected' : ''}>#${f}</option>`).join('');
-    d.innerHTML = `
-      <div>
-        <h3 class="text-base font-bold text-white cursor-pointer leading-snug" onclick="oem(${m.id})">${eh(m.title)}</h3>
-        <div class="text-[11px] font-mono-num text-slate-400 mt-0.5">${ds}</div>
-      </div>
-      <div class="space-y-1.5 text-sm pt-1">
-        ${m.bullets.map((b, i) => b.text ? `
-          <div class="text-slate-200 flex gap-2 leading-relaxed">
-            <span class="font-mono-num text-slate-400">${i + 1}.</span>
-            <span class="flex-1">${eh(b.text)}</span>
-          </div>
-          ${b.annotations && b.annotations.length > 0 ? `
-            <div class="pl-5 space-y-1 my-1">
-              ${b.annotations.map(a => `<div class="text-xs text-sky-200/90 bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-sky-500/20">💬 ${eh(a)}</div>`).join('')}
-            </div>
-          ` : ''}
-        ` : '').join('')}
-      </div>
+    const d = document.createElement('div'); d.className = 'card p-4 rounded-2xl space-y-2.5';
+    const dt = new Date(m.createdAt);
+    const ds = `${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+    const fo = fs.map(f => `<option value="${f}" ${m.folder===f?'selected':''}>#${f}</option>`).join('');
+    d.innerHTML = `<div><h3 class="text-base font-bold text-white cursor-pointer" onclick="oem(${m.id})">${eh(m.title)}</h3><div class="text-[11px] mono text-slate-400 mt-0.5">${ds}</div></div>
+      <div class="space-y-1.5 text-sm pt-1">${m.bullets.map((b,i) => b.text ? `<div class="text-slate-200 flex gap-2"><span class="mono text-slate-400">${i+1}.</span><span class="flex-1">${eh(b.text)}</span></div>
+      ${(b.annotations&&b.annotations.length)?`<div class="pl-5 space-y-1 my-1">${b.annotations.map(a=>`<div class="text-xs text-sky-200/90 bg-slate-900 px-2.5 py-1.5 rounded-lg border border-sky-500/20">💬 ${eh(a)}</div>`).join('')}</div>`:''}` : '').join('')}</div>
       <div class="flex justify-between items-center pt-2 border-t border-slate-800/80">
-        <select onchange="cfm(${m.id}, this.value)" class="px-2.5 py-1 border border-slate-700/80 rounded-lg bg-slate-900/90 text-slate-300 text-xs font-medium">${fo}</select>
-        <button type="button" onclick="oem(${m.id})" class="text-xs border border-slate-700 bg-slate-900/80 text-slate-200 hover:border-sky-400/50 font-semibold px-3 py-1 rounded-lg transition">編集・注釈</button>
-      </div>
-    `;
+        <select onchange="cfm(${m.id},this.value)" class="px-2.5 py-1 border border-slate-700 rounded-lg bg-slate-900 text-slate-300 text-xs">${fo}</select>
+        <button type="button" onclick="oem(${m.id})" class="text-xs border border-slate-700 bg-slate-900 text-slate-200 font-semibold px-3 py-1 rounded-lg">編集・注釈</button>
+      </div>`;
     c.appendChild(d);
   });
 }
 
-function cfm(id, nf) {
-  let m = ms.find(x => x.id === id);
-  if (m) {
-    m.folder = nf;
-    m.updatedAt = new Date().toISOString();
-    sds();
-    toast(`「${nf}」へ移動しました`);
-  }
-}
-
+function cfm(id, nf) { const m = ms.find(x => x.id === id); if (m) { m.folder = nf; m.updatedAt = new Date().toISOString(); sds(); toast(`「${nf}」へ移動`); } }
 function rfld() {
-  let l = document.getElementById('fl');
-  l.innerHTML = '';
+  const l = document.getElementById('fl'); l.innerHTML = '';
   fs.forEach(f => {
-    let cnt = ms.filter(m => m.folder === f).length;
-    let isSel = cf === f;
-    let div = document.createElement('div');
-    div.className = `flex justify-between items-center px-3.5 py-2.5 rounded-xl border text-sm transition cursor-pointer ${isSel ? 'bg-sky-500/15 border-sky-400/50 text-white' : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:border-slate-700'}`;
-    div.onclick = () => sft(f);
-    div.innerHTML = `
-      <span class="font-medium flex items-center gap-2 flex-1">
-        <span class="text-slate-400">📁</span> ${f} <span class="font-mono-num text-xs text-slate-400">(${cnt})</span>
-      </span>
-      ${f !== '未分類' ? `<button type="button" onclick="event.stopPropagation(); df('${f}')" class="text-rose-400 hover:text-rose-300 text-xs font-semibold px-2 py-0.5">削除</button>` : ''}
-    `;
+    const cnt = ms.filter(m => m.folder === f).length, sel = cf === f;
+    const div = document.createElement('div');
+    div.className = `flex justify-between items-center px-3.5 py-2.5 rounded-xl border text-sm cursor-pointer ${sel?'bg-sky-500/15 border-sky-400/50 text-white':'bg-slate-900/70 border-slate-800 text-slate-300'}`;
+    div.onclick = () => { cf = f; rfld(); };
+    div.innerHTML = `<span class="font-medium flex-1">📁 ${f} <span class="mono text-xs text-slate-400">(${cnt})</span></span>${f!=='未分類'?`<button type="button" onclick="event.stopPropagation();df('${f}')" class="text-rose-400 text-xs font-semibold px-2">削除</button>`:''}`;
     l.appendChild(div);
   });
-  const pdfLabel = document.getElementById('pdf-fn');
-  if (pdfLabel) pdfLabel.innerText = cf;
-  rfms();
-}
-
-function af() {
-  let fn = document.getElementById('nfn').value.trim();
-  if (fn && !fs.includes(fn)) {
-    fs.push(fn);
-    deletedFolders = deletedFolders.filter(f => f !== fn);
-    document.getElementById('nfn').value = '';
-    cf = fn;
-    sds();
-    toast(`フォルダ「${fn}」を追加`);
-  }
-}
-
-function df(fn) {
-  if (confirm(`フォルダ「${fn}」を削除しますか？\n（中のメモは「未分類」に移動します）`)) {
-    const nowIso = new Date().toISOString();
-    ms.forEach(m => {
-      if (m.folder === fn) {
-        m.folder = '未分類';
-        m.updatedAt = nowIso;
-      }
-    });
-    fs = fs.filter(f => f !== fn);
-    if (!deletedFolders.includes(fn)) deletedFolders.push(fn);
-    if (cf === fn) cf = '未分類';
-    sds();
-    toast(`フォルダを削除しました`);
-  }
-}
-
-function sft(fn) {
-  cf = fn;
-  rfld();
-}
-
-function rfms() {
-  let c = document.getElementById('fac');
-  let tms = ms.filter(m => m.folder === cf);
-  if (tms.length === 0) {
-    c.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs glass-card rounded-2xl">「${cf}」にメモはありません</div>`;
-    return;
-  }
-  c.innerHTML = `<div class="text-xs font-bold text-slate-400 px-1">📁 ${cf} のメモ一覧（${tms.length}枚）</div>`;
+  document.getElementById('pdf-fn').innerText = cf;
+  const c = document.getElementById('fac'), tms = ms.filter(m => m.folder === cf);
+  if (!tms.length) { c.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs card rounded-2xl">「${cf}」にメモはありません</div>`; return; }
+  c.innerHTML = `<div class="text-xs font-bold text-slate-400 px-1">📁 ${cf}（${tms.length}枚）</div>`;
   tms.forEach(m => {
-    let ds = new Date(m.createdAt).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    let div = document.createElement('div');
-    div.className = 'glass-card p-3.5 rounded-2xl space-y-1 cursor-pointer hover:border-sky-400/40 transition';
-    div.onclick = () => oem(m.id);
-    div.innerHTML = `
-      <div class="font-bold text-sm text-white">${eh(m.title)}</div>
-      <div class="text-[11px] font-mono-num text-slate-400">${ds}</div>
-    `;
+    const div = document.createElement('div'); div.className = 'card p-3.5 rounded-2xl space-y-1 cursor-pointer'; div.onclick = () => oem(m.id);
+    div.innerHTML = `<div class="font-bold text-sm text-white">${eh(m.title)}</div><div class="text-[11px] mono text-slate-400">${new Date(m.createdAt).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`;
     c.appendChild(div);
   });
 }
-
-// データの書き出し（JSONダウンロード）
-function exportData() {
-  const payload = {
-    version: 2,
-    exportedAt: new Date().toISOString(),
-    memos: ms,
-    folders: fs
-  };
-  const jsonStr = JSON.stringify(payload, null, 2);
-  const blob = new Blob([jsonStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const d = new Date();
-  const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-  a.href = url;
-  a.download = `zero-second-backup-${stamp}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  toast('バックアップファイルを書き出しました');
+function af() { const fn = document.getElementById('nfn').value.trim(); if (fn && !fs.includes(fn)) { fs.push(fn); delF = delF.filter(x=>x!==fn); document.getElementById('nfn').value=''; cf=fn; sds(); toast(`「${fn}」を追加`); } }
+function df(fn) {
+  if (confirm(`フォルダ「${fn}」を削除しますか？`)) {
+    const now = new Date().toISOString();
+    ms.forEach(m => { if (m.folder === fn) { m.folder = '未分類'; m.updatedAt = now; } });
+    fs = fs.filter(f => f !== fn); if (!delF.includes(fn)) delF.push(fn); if (cf === fn) cf = '未分類'; sds(); toast('フォルダを削除しました');
+  }
 }
 
-// データの復元（JSON読み込み）
-function importData(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    try {
-      const data = JSON.parse(evt.target.result);
-      if (!data || !Array.isArray(data.memos)) {
-        toast('無効なバックアップファイルです');
-        return;
+// GitHub Gist Sync
+function setSyncUI(st, msg='') {
+  const b = document.getElementById('sync-badge'), d = document.getElementById('sync-dot'), l = document.getElementById('sync-label'), tx = document.getElementById('sync-status-text');
+  if (!ghToken) { b.classList.add('hidden'); b.classList.remove('flex'); tx.innerText='未設定'; tx.className='text-[10px] mono text-slate-400'; return; }
+  b.classList.remove('hidden'); b.classList.add('flex');
+  if (st==='syncing') { d.className='w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping'; l.innerText='SYNCING'; tx.innerText='同期中...'; tx.className='text-[10px] mono text-amber-400'; }
+  else if (st==='ok') {
+    d.className='w-1.5 h-1.5 rounded-full bg-emerald-400'; l.innerText='SYNCED'; tx.innerText='連携済み ✓'; tx.className='text-[10px] mono text-emerald-400';
+    const lt = document.getElementById('sync-last-time'), n = new Date();
+    lt.innerText = `最終同期: ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`; lt.classList.remove('hidden');
+  } else if (st==='err') { d.className='w-1.5 h-1.5 rounded-full bg-rose-500'; l.innerText='ERR'; tx.innerText=msg||'エラー'; tx.className='text-[10px] mono text-rose-400'; }
+}
+function updateSyncUI() {
+  document.getElementById('gh-token-input').value = ghToken;
+  document.getElementById('sync-disconnect-btn').classList.toggle('hidden', !ghToken);
+  setSyncUI(ghToken ? 'ok' : 'none');
+}
+function saveSyncSettings() {
+  const v = document.getElementById('gh-token-input').value.trim();
+  if (!v) return toast('トークンを入力してください');
+  ghToken = v; ghGistId = ''; localStorage.setItem('gh_sync_token', ghToken); localStorage.removeItem('gh_sync_gist_id');
+  updateSyncUI(); syncWithGist(true);
+}
+function disconnectSync() {
+  if (!confirm('自動同期を解除しますか？')) return;
+  ghToken = ''; ghGistId = ''; localStorage.removeItem('gh_sync_token'); localStorage.removeItem('gh_sync_gist_id');
+  document.getElementById('sync-last-time').classList.add('hidden'); updateSyncUI(); toast('解除しました');
+}
+function manualSync() { if (ghToken && !isSyncing) syncWithGist(true); }
+async function ghFetch(u, opt={}) {
+  return fetch(u, { ...opt, cache:'no-store', headers:{ 'Authorization':`token ${ghToken}`, 'Accept':'application/vnd.github+json', 'Content-Type':'application/json', ...(opt.headers||{}) } });
+}
+async function syncWithGist(show) {
+  if (!ghToken || isSyncing) return; isSyncing = true; setSyncUI('syncing');
+  try {
+    let gist = null;
+    if (ghGistId) { const r = await ghFetch(`https://api.github.com/gists/${ghGistId}`); if (r.ok) gist = await r.json(); else ghGistId = ''; }
+    if (!gist) {
+      const lr = await ghFetch('https://api.github.com/gists?per_page=100');
+      if (!lr.ok) throw new Error(lr.status === 401 ? 'トークン無効' : `HTTP ${lr.status}`);
+      const found = (await lr.json()).find(g => g.files && g.files[GIST_FILE]);
+      if (found) { ghGistId = found.id; localStorage.setItem('gh_sync_gist_id', ghGistId); gist = await (await ghFetch(`https://api.github.com/gists/${ghGistId}`)).json(); }
+      else {
+        const cr = await ghFetch('https://api.github.com/gists', { method:'POST', body:JSON.stringify({ description:'0 Second Thinking Sync', public:false, files:{ [GIST_FILE]:{ content:JSON.stringify({ memos:ms, folders:fs, delM, delF }) } } }) });
+        if (!cr.ok) throw new Error(`HTTP ${cr.status}`);
+        gist = await cr.json(); ghGistId = gist.id; localStorage.setItem('gh_sync_gist_id', ghGistId);
       }
-      if (!confirm(`${data.memos.length}件のメモを復元しますか？\n（現在のメモと重複しないデータは統合されます）`)) {
-        e.target.value = '';
-        return;
-      }
-      if (Array.isArray(data.folders)) {
-        data.folders.forEach(f => {
-          if (typeof f === 'string' && !fs.includes(f)) {
-            fs.push(f);
-            deletedFolders = deletedFolders.filter(dfName => dfName !== f);
-          }
-        });
-      }
-      const existingIds = new Set(ms.map(m => m.id));
-      let addedCount = 0;
-      data.memos.forEach(m => {
-        if (m && m.id && !existingIds.has(m.id)) {
-          deletedMemoIds = deletedMemoIds.filter(did => did !== m.id);
-          ms.push(m);
-          addedCount++;
-        }
-      });
-      ms.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      sds();
-      toast(`${addedCount}件のメモを復元しました`);
-    } catch (err) {
-      toast('ファイルの読み込みに失敗しました');
-    } finally {
-      e.target.value = '';
     }
+    const fObj = gist.files && gist.files[GIST_FILE];
+    const rem = fObj ? (fObj.truncated && fObj.raw_url ? await (await fetch(fObj.raw_url,{cache:'no-store'})).json() : JSON.parse(fObj.content||'{}')) : null;
+    if (rem && Array.isArray(rem.memos)) {
+      delM = Array.from(new Set([...delM, ...(rem.delM||rem.deletedMemoIds||[])])).slice(-500);
+      delF = Array.from(new Set([...delF, ...(rem.delF||rem.deletedFolders||[])])).filter(x=>x!=='未分類').slice(-100);
+      const mf = ['未分類']; [...fs, ...(rem.folders||[])].forEach(f => { if (f && !delF.includes(f) && !mf.includes(f)) mf.push(f); });
+      fs = mf; if (!fs.includes(cf)) cf = '未分類';
+      const map = new Map();
+      rem.memos.forEach(m => { if (m && m.id && !delM.includes(m.id)) map.set(m.id, m); });
+      ms.forEach(lm => {
+        if (!lm || !lm.id || delM.includes(lm.id)) return;
+        const rm = map.get(lm.id);
+        if (!rm || new Date(lm.updatedAt||lm.createdAt||0) >= new Date(rm.updatedAt||rm.createdAt||0)) map.set(lm.id, lm);
+      });
+      ms = Array.from(map.values()).map(m => ({ ...m, folder: fs.includes(m.folder) ? m.folder : '未分類' })).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      saveLocal(); uc(); rma(); rfld();
+    }
+    const pr = await ghFetch(`https://api.github.com/gists/${ghGistId}`, { method:'PATCH', body:JSON.stringify({ files:{ [GIST_FILE]:{ content:JSON.stringify({ memos:ms, folders:fs, delM, delF }) } } }) });
+    if (!pr.ok) throw new Error(`HTTP ${pr.status}`);
+    setSyncUI('ok'); if (show) toast('GitHubと同期しました');
+  } catch (e) { setSyncUI('err', e.message); if (show) toast(`同期エラー: ${e.message}`); }
+  finally { isSyncing = false; }
+}
+
+function exportData() {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({ memos:ms, folders:fs }, null, 2)], { type:'application/json' }));
+  a.download = `zero-second-${new Date().toISOString().slice(0,10)}.json`; a.click(); toast('書き出しました');
+}
+function importData(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (!Array.isArray(d.memos)) return toast('無効なファイルです');
+      if (!confirm(`${d.memos.length}件のメモを復元しますか？`)) return;
+      (d.folders||[]).forEach(x => { if (typeof x==='string' && !fs.includes(x)) { fs.push(x); delF = delF.filter(y=>y!==x); } });
+      const ids = new Set(ms.map(m=>m.id)); let cnt = 0;
+      d.memos.forEach(m => { if (m && m.id && !ids.has(m.id)) { delM = delM.filter(y=>y!==m.id); ms.push(m); cnt++; } });
+      ms.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); sds(); toast(`${cnt}件復元しました`);
+    } catch { toast('読み込み失敗'); } finally { e.target.value = ''; }
   };
-  reader.readAsText(file);
+  r.readAsText(f);
 }
 
 function epf(fn) {
-  let tms = ms.filter(m => m.folder === fn);
-  if (tms.length === 0) {
-    toast('書き出せるメモがありません');
-    return;
-  }
-  let pw = window.open('', '_blank');
-  let h = `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>ゼロ秒思考 - ${fn}</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; color: #0f172a; max-width: 800px; margin: 0 auto; }
-    h1 { border-bottom: 2px solid #0f172a; padding-bottom: 6px; color: #0f172a; font-size: 18px; }
-    .mc { border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 16px; page-break-inside: avoid; }
-    .mt { font-size: 16px; font-weight: bold; border-bottom: 2px solid #334155; padding-bottom: 3px; margin-bottom: 6px; color: #0f172a; }
-    .md { font-size: 11px; color: #64748b; margin-bottom: 10px; }
-    .bi { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: flex; gap: 6px; }
-    .ai { font-size: 11px; background: #f8fafc; padding: 4px 8px; border-radius: 4px; border: 1px solid #e2e8f0; margin: 3px 0 5px 18px; color: #475569; }
-    .pb { padding: 10px 20px; background: #0f172a; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; display: block; margin: 20px auto; }
-    @media print { .pb { display: none; } }
-  </style></head><body><h1>📁 ゼロ秒思考メモ - ${fn}</h1>`;
+  const tms = ms.filter(m => m.folder === fn); if (!tms.length) return toast('メモがありません');
+  const pw = window.open('', '_blank');
+  let h = `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>${fn}</title><style>body{font-family:sans-serif;padding:20px;max-width:800px;margin:0 auto}h1{border-bottom:2px solid #000;font-size:18px}.mc{border:1px solid #ccc;border-radius:8px;padding:12px;margin-bottom:14px}.mt{font-weight:bold;border-bottom:1px solid #333;margin-bottom:4px}.md{font-size:11px;color:#666;margin-bottom:8px}.bi{font-size:13px;margin-bottom:4px}.ai{font-size:11px;background:#f5f5f5;padding:4px 8px;margin:2px 0 4px 16px}@media print{.pb{display:none}}</style></head><body><h1>📁 ${fn}</h1>`;
   tms.forEach(m => {
     h += `<div class="mc"><div class="mt">${eh(m.title)}</div><div class="md">${new Date(m.createdAt).toLocaleString('ja-JP')}</div>`;
-    m.bullets.forEach((b, i) => {
-      if (b.text) {
-        h += `<div class="bi"><span style="color:#475569">${i + 1}.</span><span>${eh(b.text)}</span></div>`;
-        if (b.annotations) {
-          b.annotations.forEach(a => {
-            h += `<div class="ai">💬 ${eh(a)}</div>`;
-          });
-        }
-      }
-    });
+    m.bullets.forEach((b,i) => { if (b.text) { h += `<div class="bi">${i+1}. ${eh(b.text)}</div>`; (b.annotations||[]).forEach(a => h += `<div class="ai">💬 ${eh(a)}</div>`); } });
     h += `</div>`;
   });
-  pw.document.write(h + `<button class="pb" onclick="window.print()">PDF保存 / 印刷</button></body></html>`);
-  pw.document.close();
+  pw.document.write(h + `<button class="pb" onclick="window.print()">PDF保存 / 印刷</button></body></html>`); pw.document.close();
 }
 
 function oem(id) {
-  let m = ms.find(x => x.id === id);
-  if (!m) return;
-  document.getElementById('emi').value = m.id;
-  document.getElementById('et').value = m.title;
-  let c = document.getElementById('ebc');
-  c.innerHTML = '';
-  m.bullets.forEach((b, i) => {
-    let div = document.createElement('div');
-    div.className = 'bg-slate-900/70 p-2.5 rounded-xl border border-slate-800 space-y-1.5';
-    let ah = '';
-    (b.annotations || []).forEach((a, ai) => {
-      ah += `<div class="flex items-center gap-1.5"><input type="text" value="${eh(a)}" class="ea-${i} input-dark flex-1 px-2.5 py-1 text-xs rounded-lg" placeholder="注釈 ${ai + 1}"><button type="button" onclick="this.parentElement.remove()" class="text-xs text-rose-400 font-bold px-1.5">×</button></div>`;
-    });
-    div.innerHTML = `
-      <div class="flex items-center gap-1.5">
-        <span class="text-xs font-mono-num font-bold text-slate-400">${i + 1}.</span>
-        <input type="text" value="${eh(b.text)}" class="eb-${i} input-dark flex-1 px-2.5 py-1.5 text-sm font-semibold rounded-lg">
-      </div>
-      <div class="pl-5 space-y-1">
-        <div class="text-[10px] font-bold text-slate-400">注釈 (最大6つ):</div>
-        <div id="al-${i}" class="space-y-1">${ah}</div>
-        ${(b.annotations || []).length < 6 ? `<button type="button" onclick="aai(${i})" class="text-[10px] text-sky-400 font-bold hover:underline">+ 注釈追加</button>` : ''}
-      </div>
-    `;
+  const m = ms.find(x => x.id === id); if (!m) return;
+  document.getElementById('emi').value = m.id; document.getElementById('et').value = m.title;
+  const c = document.getElementById('ebc'); c.innerHTML = '';
+  m.bullets.forEach((b,i) => {
+    const ah = (b.annotations||[]).map((a,ai) => `<div class="flex gap-1.5"><input type="text" value="${eh(a)}" class="ea-${i} inp flex-1 px-2 py-1 text-xs rounded-lg"><button type="button" onclick="this.parentElement.remove()" class="text-xs text-rose-400 font-bold px-1">×</button></div>`).join('');
+    const div = document.createElement('div'); div.className = 'bg-slate-900/70 p-2.5 rounded-xl border border-slate-800 space-y-1.5';
+    div.innerHTML = `<div class="flex items-center gap-1.5"><span class="text-xs mono text-slate-400">${i+1}.</span><input type="text" value="${eh(b.text)}" class="eb-${i} inp flex-1 px-2.5 py-1.5 text-sm font-semibold rounded-lg"></div>
+      <div class="pl-5 space-y-1"><div id="al-${i}" class="space-y-1">${ah}</div><button type="button" onclick="aai(${i})" class="text-[10px] text-sky-400 font-bold">+ 注釈追加</button></div>`;
     c.appendChild(div);
   });
   document.getElementById('em').classList.remove('hidden');
 }
-
-function aai(bi) {
-  let l = document.getElementById(`al-${bi}`);
-  if (l.children.length >= 6) return;
-  let div = document.createElement('div');
-  div.className = 'flex items-center gap-1.5';
-  div.innerHTML = `<input type="text" value="" class="ea-${bi} input-dark flex-1 px-2.5 py-1 text-xs rounded-lg" placeholder="新しい注釈"><button type="button" onclick="this.parentElement.remove()" class="text-xs text-rose-400 font-bold px-1.5">×</button>`;
-  l.appendChild(div);
+function aai(i) {
+  const l = document.getElementById(`al-${i}`); if (l.children.length >= 6) return;
+  const d = document.createElement('div'); d.className = 'flex gap-1.5';
+  d.innerHTML = `<input type="text" class="ea-${i} inp flex-1 px-2 py-1 text-xs rounded-lg" placeholder="注釈"><button type="button" onclick="this.parentElement.remove()" class="text-xs text-rose-400 font-bold px-1">×</button>`;
+  l.appendChild(d);
 }
-
-function cem() {
-  document.getElementById('em').classList.add('hidden');
-}
-
+function cem() { document.getElementById('em').classList.add('hidden'); }
 function sem() {
-  let id = Number(document.getElementById('emi').value);
-  let m = ms.find(x => x.id === id);
-  if (!m) return;
+  const m = ms.find(x => x.id === Number(document.getElementById('emi').value)); if (!m) return;
   m.title = document.getElementById('et').value.trim() || '無題';
-  for (let i = 0; i < 6; i++) {
-    let bt = document.querySelector(`.eb-${i}`).value.trim();
-    let ats = Array.from(document.querySelectorAll(`.ea-${i}`)).map(a => a.value.trim()).filter(Boolean);
-    m.bullets[i] = { text: bt, annotations: ats };
-  }
-  m.updatedAt = new Date().toISOString();
-  sds();
-  cem();
-  toast('メモを更新しました');
+  for (let i = 0; i < 6; i++) m.bullets[i] = { text: document.querySelector(`.eb-${i}`).value.trim(), annotations: Array.from(document.querySelectorAll(`.ea-${i}`)).map(a=>a.value.trim()).filter(Boolean) };
+  m.updatedAt = new Date().toISOString(); sds(); cem(); toast('更新しました');
 }
-
 function dem() {
-  let id = Number(document.getElementById('emi').value);
-  if (confirm('このメモを削除しますか？')) {
-    ms = ms.filter(x => x.id !== id);
-    if (!deletedMemoIds.includes(id)) deletedMemoIds.push(id);
-    sds();
-    cem();
-    toast('削除しました');
-  }
+  const id = Number(document.getElementById('emi').value);
+  if (confirm('削除しますか？')) { ms = ms.filter(x => x.id !== id); if (!delM.includes(id)) delM.push(id); sds(); cem(); toast('削除しました'); }
 }
-
-function eh(s) {
-  return (s || '').replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t));
-}
+function eh(s) { return (s||'').replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t]||t)); }
 </script>
 </body>
 </html>
