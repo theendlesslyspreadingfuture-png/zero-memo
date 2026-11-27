@@ -22,7 +22,7 @@
       linear-gradient(to bottom, rgba(56,189,248,.07) 1px, transparent 1px);
     background-size: 100% 100%, 28px 28px, 28px 28px;
     color: #e2e8f0;
-    padding-top: env(safe-area-inset-top);
+    padding-top: calc(env(safe-area-inset-top) + 4.25rem);
     padding-bottom: calc(env(safe-area-inset-bottom) + 5.5rem);
     -webkit-tap-highlight-color: transparent;
   }
@@ -52,7 +52,6 @@
   }
   .btn-w:active { transform: scale(.98); }
   .glow { text-shadow: 0 0 24px rgba(255,255,255,.35); }
-  /* デジタルタイムバー装飾 */
   .digi-track {
     background: #04070d;
     box-shadow: inset 0 1px 3px rgba(0,0,0,.9);
@@ -78,12 +77,12 @@
 </head>
 <body class="min-h-screen">
 
-<div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white border border-sky-400/30 px-4 py-2 rounded-full text-xs font-semibold shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+<div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white border border-sky-400/30 px-4 py-2 rounded-full text-xs font-semibold shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
   <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span><span id="toast-msg"></span>
 </div>
 
-<!-- 固定ヘッダー＆上部デジタルタイムバー -->
-<header class="bg-[#060a12]/92 backdrop-blur-md sticky top-0 z-30 shadow-lg shadow-black/40">
+<!-- 画面移動と連動する固定ヘッダー＆デジタルタイムバー -->
+<header id="app-header" class="fixed top-0 left-0 right-0 bg-[#060a12]/95 backdrop-blur-md z-40 shadow-lg shadow-black/50 will-change-transform" style="padding-top:env(safe-area-inset-top)">
   <div class="max-w-md mx-auto px-4 py-2.5 flex justify-between items-center">
     <div class="flex items-center gap-2.5">
       <img src="./Gemini_Generated_Image_o48rqqo48rqqo48r.jpeg" alt="icon" class="w-7 h-7 rounded-lg border border-sky-400/30 object-cover shadow" onerror="this.style.display='none'">
@@ -98,8 +97,8 @@
       <div class="text-xs mono text-slate-400">TODAY <span id="tc" class="text-sky-400 font-bold ml-1">0</span> / 10</div>
     </div>
   </div>
-  <!-- 常時表示のデジタル進行バー（左→右） -->
-  <div class="w-full h-2.5 digi-track border-t border-b border-sky-500/25 relative overflow-hidden">
+  <!-- デジタル進行バー（左→右） -->
+  <div class="w-full h-3 digi-track border-t border-b border-sky-500/30 relative overflow-hidden">
     <div id="top-time-bar" class="h-full digi-bar-cyan relative transition-all duration-1000 ease-linear" style="width:0%">
       <span id="top-time-tip" class="hidden absolute right-0 top-0 bottom-0 w-1.5 bg-white shadow-[0_0_8px_#fff,0_0_14px_#38bdf8]"></span>
     </div>
@@ -251,6 +250,21 @@
   }
 })();
 
+// 画面スライド・キーボード表示時のビューポート移動とヘッダー・バーをリアルタイム連動
+function syncHeaderToViewport() {
+  const hdr = document.getElementById('app-header');
+  if (!hdr) return;
+  if (window.visualViewport) {
+    const offset = Math.max(0, window.visualViewport.offsetTop);
+    hdr.style.transform = `translate3d(0, ${offset}px, 0)`;
+  }
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('scroll', syncHeaderToViewport, { passive: true });
+  window.visualViewport.addEventListener('resize', syncHeaderToViewport, { passive: true });
+}
+window.addEventListener('scroll', syncHeaderToViewport, { passive: true });
+
 const GIST_FILE = "zero-second-thinking-sync.json";
 let ms = JSON.parse(localStorage.getItem('zm') || '[]');
 let fs = JSON.parse(localStorage.getItem('zf') || '["未分類","仕事","プライベート","思考"]');
@@ -262,7 +276,7 @@ let isSyncing = false, pushTimer = null, cf = "未分類", afFilter = "すべて
 
 window.onload = () => {
   ibi('bic', ['','','','','','']);
-  bindSeq(); uc(); rfld(); rma(); sbt('tw'); updateSyncUI(); utd();
+  bindSeq(); uc(); rfld(); rma(); sbt('tw'); updateSyncUI(); utd(); syncHeaderToViewport();
   if (ghToken) syncWithGist(false);
 };
 document.addEventListener('visibilitychange', () => {
@@ -282,6 +296,7 @@ function bindSeq() {
     let comp = false, compEnd = 0;
     el.addEventListener('compositionstart', () => comp = true);
     el.addEventListener('compositionend', () => { comp = false; compEnd = Date.now(); });
+    el.addEventListener('focus', () => setTimeout(syncHeaderToViewport, 50));
     const goNext = (e) => {
       if (comp || e.isComposing || e.keyCode === 229 || (Date.now() - compEnd < 90)) return;
       if (e.key === 'Enter' || e.keyCode === 13) {
@@ -289,7 +304,11 @@ function bindSeq() {
         if (idx < fields.length - 1) {
           const nxt = fields[idx + 1];
           nxt.focus({ preventScroll: true });
-          setTimeout(() => { nxt.focus({ preventScroll: true }); nxt.scrollIntoView({ behavior:'smooth', block:'center' }); }, 15);
+          setTimeout(() => {
+            nxt.focus({ preventScroll: true });
+            nxt.scrollIntoView({ behavior:'smooth', block:'center' });
+            syncHeaderToViewport();
+          }, 15);
         } else { el.blur(); sm(); }
       }
     };
@@ -310,16 +329,16 @@ function ibi(cid, vals) {
 }
 
 function st() {
+  syncHeaderToViewport();
   if (tr) return;
   tr = true;
   tl = 60;
-  // 0%から滑らかに左→右へ動き出すよう初期化してから1秒後に進める
   const bar = document.getElementById('top-time-bar');
   const tip = document.getElementById('top-time-tip');
   if (bar) {
     bar.style.transition = 'none';
     bar.style.width = '0%';
-    bar.offsetHeight; // reflow
+    bar.offsetHeight;
     bar.style.transition = 'width 1s linear';
   }
   if (tip) tip.classList.remove('hidden');
@@ -348,7 +367,6 @@ function utd(justStarted = false) {
     : 'text-5xl mono font-bold text-white tracking-wider glow';
 
   if (bar) {
-    // 開始直後は次の1秒に向かって進み、以降は経過割合 (60 - tl) / 60 で左から右へ移動
     const targetPct = tr
       ? (justStarted ? (1 / 60) * 100 : Math.min(((60 - tl + 1) / 60) * 100, 100))
       : 0;
@@ -419,6 +437,7 @@ function sbt(n) {
   document.querySelectorAll('.nb').forEach(e => { e.classList.remove('text-white'); e.classList.add('text-slate-500'); });
   document.getElementById(n).classList.remove('hidden');
   const an = document.getElementById(`nv-${n}`); an.classList.remove('text-slate-500'); an.classList.add('text-white');
+  setTimeout(syncHeaderToViewport, 30);
 }
 
 function openAfPicker() {
