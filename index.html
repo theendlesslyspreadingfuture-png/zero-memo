@@ -52,16 +52,39 @@
   }
   .btn-w:active { transform: scale(.98); }
   .glow { text-shadow: 0 0 24px rgba(255,255,255,.35); }
+  /* デジタルタイムバー装飾 */
+  .digi-track {
+    background: #04070d;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,.9);
+  }
+  .digi-grid-overlay {
+    background-image: repeating-linear-gradient(
+      to right,
+      transparent 0px,
+      transparent 10px,
+      rgba(6, 10, 18, 0.55) 10px,
+      rgba(6, 10, 18, 0.55) 12px
+    );
+  }
+  .digi-bar-cyan {
+    background: linear-gradient(90deg, #3b82f6 0%, #0ea5e9 55%, #67e8f9 100%);
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.75);
+  }
+  .digi-bar-warn {
+    background: linear-gradient(90deg, #f97316 0%, #f43f5e 60%, #fda4af 100%);
+    box-shadow: 0 0 16px rgba(244, 63, 94, 0.85);
+  }
 </style>
 </head>
 <body class="min-h-screen">
 
-<div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white border border-sky-400/30 px-4 py-2 rounded-full text-xs font-semibold shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+<div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white border border-sky-400/30 px-4 py-2 rounded-full text-xs font-semibold shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
   <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span><span id="toast-msg"></span>
 </div>
 
-<header class="bg-[#060a12]/85 backdrop-blur-md border-b border-sky-500/15 px-4 py-3 sticky top-0 z-20">
-  <div class="max-w-md mx-auto flex justify-between items-center">
+<!-- 固定ヘッダー＆上部デジタルタイムバー -->
+<header class="bg-[#060a12]/92 backdrop-blur-md sticky top-0 z-30 shadow-lg shadow-black/40">
+  <div class="max-w-md mx-auto px-4 py-2.5 flex justify-between items-center">
     <div class="flex items-center gap-2.5">
       <img src="./Gemini_Generated_Image_o48rqqo48rqqo48r.jpeg" alt="icon" class="w-7 h-7 rounded-lg border border-sky-400/30 object-cover shadow" onerror="this.style.display='none'">
       <h1 class="text-sm font-bold tracking-wider text-white">1 MIN MEMO</h1>
@@ -70,7 +93,17 @@
         <span id="sync-label">SYNC</span>
       </button>
     </div>
-    <div class="text-xs mono text-slate-400">TODAY <span id="tc" class="text-sky-400 font-bold ml-1">0</span> / 10</div>
+    <div class="flex items-center gap-2.5">
+      <span id="top-sec-pill" class="hidden mono text-xs font-bold px-2 py-0.5 rounded-md bg-sky-500/15 border border-sky-400/40 text-sky-300">60s</span>
+      <div class="text-xs mono text-slate-400">TODAY <span id="tc" class="text-sky-400 font-bold ml-1">0</span> / 10</div>
+    </div>
+  </div>
+  <!-- 常時表示のデジタル進行バー（左→右） -->
+  <div class="w-full h-2.5 digi-track border-t border-b border-sky-500/25 relative overflow-hidden">
+    <div id="top-time-bar" class="h-full digi-bar-cyan relative transition-all duration-1000 ease-linear" style="width:0%">
+      <span id="top-time-tip" class="hidden absolute right-0 top-0 bottom-0 w-1.5 bg-white shadow-[0_0_8px_#fff,0_0_14px_#38bdf8]"></span>
+    </div>
+    <div class="absolute inset-0 digi-grid-overlay pointer-events-none"></div>
   </div>
 </header>
 
@@ -229,7 +262,7 @@ let isSyncing = false, pushTimer = null, cf = "未分類", afFilter = "すべて
 
 window.onload = () => {
   ibi('bic', ['','','','','','']);
-  bindSeq(); uc(); rfld(); rma(); sbt('tw'); updateSyncUI();
+  bindSeq(); uc(); rfld(); rma(); sbt('tw'); updateSyncUI(); utd();
   if (ghToken) syncWithGist(false);
 };
 document.addEventListener('visibilitychange', () => {
@@ -277,15 +310,80 @@ function ibi(cid, vals) {
 }
 
 function st() {
-  if (tr) return; tr = true; tl = 60; utd(); clearInterval(tm);
-  tm = setInterval(() => { tl--; utd(); if (tl <= 0) { clearInterval(tm); tr = false; sm(true); } }, 1000);
+  if (tr) return;
+  tr = true;
+  tl = 60;
+  // 0%から滑らかに左→右へ動き出すよう初期化してから1秒後に進める
+  const bar = document.getElementById('top-time-bar');
+  const tip = document.getElementById('top-time-tip');
+  if (bar) {
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    bar.offsetHeight; // reflow
+    bar.style.transition = 'width 1s linear';
+  }
+  if (tip) tip.classList.remove('hidden');
+  utd(true);
+  clearInterval(tm);
+  tm = setInterval(() => {
+    tl--;
+    utd();
+    if (tl <= 0) {
+      clearInterval(tm);
+      tr = false;
+      sm(true);
+    }
+  }, 1000);
 }
-function utd() {
+
+function utd(justStarted = false) {
   const el = document.getElementById('td');
+  const bar = document.getElementById('top-time-bar');
+  const tip = document.getElementById('top-time-tip');
+  const pill = document.getElementById('top-sec-pill');
+
   el.innerText = `${String(Math.floor(tl/60)).padStart(2,'0')}:${String(tl%60).padStart(2,'0')}`;
-  el.className = tl <= 10 ? 'text-5xl mono font-bold text-rose-400 tracking-wider animate-pulse' : 'text-5xl mono font-bold text-white tracking-wider glow';
+  el.className = tl <= 10
+    ? 'text-5xl mono font-bold text-rose-400 tracking-wider animate-pulse'
+    : 'text-5xl mono font-bold text-white tracking-wider glow';
+
+  if (bar) {
+    // 開始直後は次の1秒に向かって進み、以降は経過割合 (60 - tl) / 60 で左から右へ移動
+    const targetPct = tr
+      ? (justStarted ? (1 / 60) * 100 : Math.min(((60 - tl + 1) / 60) * 100, 100))
+      : 0;
+    bar.style.width = `${targetPct}%`;
+    bar.className = tl <= 10
+      ? 'h-full digi-bar-warn relative transition-all duration-1000 ease-linear'
+      : 'h-full digi-bar-cyan relative transition-all duration-1000 ease-linear';
+  }
+  if (tip) {
+    tip.classList.toggle('hidden', !tr);
+  }
+  if (pill) {
+    if (tr) {
+      pill.classList.remove('hidden');
+      pill.innerText = `${tl}s`;
+      pill.className = tl <= 10
+        ? 'mono text-xs font-bold px-2 py-0.5 rounded-md bg-rose-500/20 border border-rose-400/50 text-rose-300 animate-pulse'
+        : 'mono text-xs font-bold px-2 py-0.5 rounded-md bg-sky-500/15 border border-sky-400/40 text-sky-300';
+    } else {
+      pill.classList.add('hidden');
+    }
+  }
 }
-function rt() { clearInterval(tm); tr = false; tl = 60; utd(); }
+
+function rt() {
+  clearInterval(tm);
+  tr = false;
+  tl = 60;
+  const bar = document.getElementById('top-time-bar');
+  if (bar) {
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+  }
+  utd();
+}
 
 function sm(it = false) {
   const t = document.getElementById('mt').value.trim();
